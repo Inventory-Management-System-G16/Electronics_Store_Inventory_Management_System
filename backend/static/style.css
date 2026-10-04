@@ -1,0 +1,58 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    margin: 0;
+    padding: 30px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+}
+
+h1 {
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.inventory-table th,
+.inventory-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.inventory-table th {
+    background-color: #eeeeee;
+}
+
+.inventory-table tr:hover {
+    background-color: #f8f8f8;
+}
+
+.status {
+    font-weight: bold;
+}
+
+.in-stock {
+    color: green;
+}
+
+.low-stock {
+    color: #d68910;
+}
+
+.out-of-stock {
+    color: red;
+}

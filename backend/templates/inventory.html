@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>View Inventory</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Electronics Store Inventory</h1>
+
+    <p class="subtitle">
+        Current inventory of electronic products
+    </p>
+
+    <table class="inventory-table">
+
+        <thead>
+            <tr>
+                <th>Product ID</th>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Reorder Level</th>
+                <th>Location</th>
+                <th>Availability</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for product in products %}
+
+            <tr>
+
+                <td>{{ product.product_id }}</td>
+
+                <td>{{ product.product_name }}</td>
+
+                <td>{{ product.category }}</td>
+
+                <td>₹{{ "%.2f"|format(product.price) }}</td>
+
+                <td>{{ product.quantity }}</td>
+
+                <td>{{ product.reorder_level }}</td>
+
+                <td>{{ product.location or "-" }}</td>
+
+                <td class="status">
+
+                    {% if product.quantity == 0 %}
+
+                        <span class="out-of-stock">
+                            Out of Stock
+                        </span>
+
+                    {% elif product.quantity <= product.reorder_level %}
+
+                        <span class="low-stock">
+                            Low Stock
+                        </span>
+
+                    {% else %}
+
+                        <span class="in-stock">
+                            In Stock
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</body>
+</html>
