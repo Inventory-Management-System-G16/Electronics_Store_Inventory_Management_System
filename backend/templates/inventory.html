@@ -21,6 +21,40 @@
         Current inventory of electronic products
     </p>
 
+    <form method="GET" action="{{ url_for('inventory') }}" class="search-form">
+
+    <input
+        type="text"
+        name="search"
+        placeholder="Search inventory..."
+        value="{{ search }}"
+    >
+
+    <select name="search_by">
+
+        <option value="product_id"
+            {% if search_by == "product_id" %}selected{% endif %}>
+            Product ID
+        </option>
+
+        <option value="product_name"
+            {% if search_by == "product_name" %}selected{% endif %}>
+            Product Name
+        </option>
+
+        <option value="category"
+            {% if search_by == "category" %}selected{% endif %}>
+            Category
+        </option>
+
+    </select>
+
+    <button type="submit">Search</button>
+
+    <a href="{{ url_for('inventory') }}">Clear</a>
+
+    </form>
+
     <table class="inventory-table">
 
         <thead>
