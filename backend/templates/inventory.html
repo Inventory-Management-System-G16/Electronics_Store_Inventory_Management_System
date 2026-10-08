@@ -67,6 +67,7 @@
                 <th>Reorder Level</th>
                 <th>Location</th>
                 <th>Availability</th>
+                <th>Action</th>
             </tr>
         </thead>
 
@@ -113,6 +114,12 @@
                     {% endif %}
 
                 </td>
+                <td>
+                    <a href="{{ url_for('update_product', product_id=product.product_id) }}"
+                     class="update-button">
+                     Update
+                    </a>
+</td>
 
             </tr>
 

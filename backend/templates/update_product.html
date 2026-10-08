@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Update Product</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Update Product</h1>
+
+    <p class="subtitle">
+        Update the details of an existing product
+    </p>
+
+    <form method="POST" class="update-form">
+        {% if error %}
+            <p class="error-message">
+                    {{ error }}
+            </p>
+        {% endif %}
+
+        <label>Product ID</label>
+        <input
+            type="text"
+            value="{{ product.product_id }}"
+            readonly
+        >
+
+        <label>Product Name</label>
+        <input
+            type="text"
+            name="product_name"
+            value="{{ product.product_name }}"
+            required
+        >
+
+        <label>Category</label>
+        <input
+            type="text"
+            name="category"
+            value="{{ product.category }}"
+            required
+        >
+
+        <label>Price</label>
+        <input
+            type="number"
+            name="price"
+            step="0.01"
+            min="0"
+            value="{{ product.price }}"
+            required
+        >
+
+        <label>Current Quantity</label>
+        <input
+            type="number"
+            name="quantity"
+            min="0"
+            value="{{ product.quantity }}"
+            required
+        >
+
+        <label>Reorder Level</label>
+        <input
+            type="number"
+            name="reorder_level"
+            min="0"
+            value="{{ product.reorder_level }}"
+            required
+        >
+
+        <label>Location</label>
+        <input
+            type="text"
+            name="location"
+            value="{{ product.location or '' }}"
+        >
+
+        <div class="form-buttons">
+
+            <button type="submit">
+                Update Product
+            </button>
+
+            <a href="{{ url_for('inventory') }}">
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>
