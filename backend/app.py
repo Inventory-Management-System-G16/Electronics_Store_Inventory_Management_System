@@ -9,7 +9,7 @@ from decimal import Decimal
 from functools import wraps
 
 from flask import Flask, abort, current_app, flash, g, redirect, render_template, request, session, url_for
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import check_password_hash
 from dotenv import load_dotenv
 
 load_dotenv()
