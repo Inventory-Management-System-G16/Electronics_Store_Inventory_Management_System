@@ -1,45 +1,53 @@
-
-"""Create demo users for local development only."""
-import secrets
+"""Create or reset demo users for local development only."""
 
 from werkzeug.security import generate_password_hash
 from app import app, execute
 
+
 users = [
-    ("admin_demo", "admin@example.test", "admin"),
-    ("manager_demo", "manager@example.test", "store_manager"),
-    ("employee_demo", "employee@example.test", "store_employee"),
-    ("management_demo", "management@example.test", "management"),
+    ("admin_demo", "admin@example.test", "AdminDemo@123", "admin"),
+    ("manager_demo", "manager@example.test", "ManagerDemo@123", "store_manager"),
+    ("employee_demo", "employee@example.test", "EmployeeDemo@123", "store_employee"),
+    ("management_demo", "management@example.test", "ManagementDemo@123", "management"),
 ]
 
+
 with app.app_context():
-    for username, email, role in users:
-        exists = execute(
+    for username, email, password, role in users:
+
+        existing = execute(
             "SELECT user_id FROM users WHERE username = %s",
             (username,),
             fetchone=True,
         )
 
-        if not exists:
-            password = secrets.token_urlsafe(12)
+        password_hash = generate_password_hash(password)
 
+        if existing:
             execute(
-                """INSERT INTO users
-                   (username, email, password_hash, role, is_active)
-                   VALUES (%s, %s, %s, %s, %s)""",
-                (
-                    username,
-                    email,
-                    generate_password_hash(password),
-                    role,
-                    True,
-                ),
+                """
+                UPDATE users
+                SET password_hash = %s,
+                    email = %s,
+                    role = %s,
+                    is_active = %s
+                WHERE username = %s
+                """,
+                (password_hash, email, role, True, username),
                 commit=True,
             )
+            print(f"Password reset for {username}: {password}")
 
-            print(
-                f"Created {username} ({role}) "
-                f"with one-time password: {password}"
-            )
         else:
-            print(f"Skipped {username}; it already exists.")
+            execute(
+                """
+                INSERT INTO users
+                    (username, email, password_hash, role, is_active)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (username, email, password_hash, role, True),
+                commit=True,
+            )
+            print(f"Created {username}: {password}")
+
+print("Demo-user setup completed.")
