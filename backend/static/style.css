@@ -1,3 +1,4 @@
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#172033;background:#f3f5f9}*{box-sizing:border-box}body{margin:0;padding:32px 16px}.card{max-width:440px;margin:4vh auto;background:white;padding:28px;border-radius:12px;box-shadow:0 8px 30px #17203312}.wide{max-width:1000px}h1{margin-top:0}label{display:block;margin:14px 0 6px;font-weight:600}input,select{width:100%;padding:10px 12px;border:1px solid #cbd2df;border-radius:6px;font:inherit}button,.button-link{display:inline-block;margin-top:16px;padding:10px 16px;background:#2349a5;color:white;border:0;border-radius:6px;font:inherit;text-decoration:none;cursor:pointer}button.secondary{background:#5c667a;margin:0}nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}nav form{margin:0}.error{background:#fff0f0;color:#a32222;padding:10px;border-radius:6px}.success{color:#17653b}.search{display:flex;gap:8px;margin:18px 0}.search button{margin:0}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #e3e7ef}th{background:#f7f8fb}
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f6f8;
@@ -158,4 +159,20 @@ h1 {
 
 .update-button:hover {
     background-color: #555;
+}
+/* ---- integration fixes ---- */
+.error-message {
+    margin: 0 0 10px 0;
+}
+
+.search {
+    align-items: center;
+}
+
+.search .button-link {
+    margin: 0;
+}
+
+.container nav {
+    margin-bottom: 20px;
 }

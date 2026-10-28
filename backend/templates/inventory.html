@@ -1,135 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>View Inventory</title>
-
+    <title>ESIMS | Inventory</title>
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
+<main class="card wide">
 
-<div class="container">
+    <nav>
+        <strong>Electronics Store Inventory</strong>
 
-    <h1>Electronics Store Inventory</h1>
+        <span>
+            {{ session.get('username') }}
+            ({{ session.get('role') }})
+        </span>
 
-    <p class="subtitle">
-        Current inventory of electronic products
-    </p>
+        <form method="post" action="{{ url_for('logout') }}">
+            <button class="secondary" type="submit">Log out</button>
+        </form>
+    </nav>
 
-    <form method="GET" action="{{ url_for('inventory') }}" class="search-form">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <p class="{{ category }}">{{ message }}</p>
+        {% endfor %}
+    {% endwith %}
 
-    <input
-        type="text"
-        name="search"
-        placeholder="Search inventory..."
-        value="{{ search }}"
-    >
+    {% if can_add %}
+        <p>
+            <a class="button-link" href="{{ url_for('add_product') }}">
+                Add Product
+            </a>
+        </p>
+    {% endif %}
 
-    <select name="search_by">
+    <form method="get" action="{{ url_for('inventory') }}" class="search">
+        <input
+            type="text"
+            name="search"
+            placeholder="Search inventory..."
+            value="{{ search }}"
+        >
 
-        <option value="product_id"
-            {% if search_by == "product_id" %}selected{% endif %}>
-            Product ID
-        </option>
+        <select name="search_by">
+            <option value="product_id"
+                {% if search_by == 'product_id' %}selected{% endif %}>
+                Product ID
+            </option>
 
-        <option value="product_name"
-            {% if search_by == "product_name" %}selected{% endif %}>
-            Product Name
-        </option>
+            <option value="product_name"
+                {% if search_by == 'product_name' %}selected{% endif %}>
+                Product Name
+            </option>
 
-        <option value="category"
-            {% if search_by == "category" %}selected{% endif %}>
-            Category
-        </option>
+            <option value="category"
+                {% if search_by == 'category' %}selected{% endif %}>
+                Category
+            </option>
+        </select>
 
-    </select>
+        <button type="submit">Search</button>
 
-    <button type="submit">Search</button>
-
-    <a href="{{ url_for('inventory') }}">Clear</a>
-
+        <a class="button-link" href="{{ url_for('inventory') }}">Clear</a>
     </form>
 
-    <table class="inventory-table">
+    <div class="table-wrap">
+        <table class="inventory-table">
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Reorder Level</th>
+                    <th>Location</th>
+                    <th>Availability</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
 
-        <thead>
-            <tr>
-                <th>Product ID</th>
-                <th>Product Name</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Reorder Level</th>
-                <th>Location</th>
-                <th>Availability</th>
-                <th>Action</th>
-            </tr>
-        </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product['product_id'] }}</td>
+                        <td>{{ product['product_name'] }}</td>
+                        <td>{{ product['category'] }}</td>
+                        <td>₹{{ "%.2f"|format(product['price']) }}</td>
+                        <td>{{ product['quantity'] }}</td>
+                        <td>{{ product['reorder_level'] }}</td>
+                        <td>{{ product['location'] or '-' }}</td>
 
-        <tbody>
+                        <td class="status">
+                            {% if product['quantity'] == 0 %}
+                                <span class="out-of-stock">
+                                    Out of Stock
+                                </span>
+                            {% elif product['quantity'] <= product['reorder_level'] %}
+                                <span class="low-stock">
+                                    Low Stock
+                                </span>
+                            {% else %}
+                                <span class="in-stock">
+                                    In Stock
+                                </span>
+                            {% endif %}
+                        </td>
 
-        {% for product in products %}
+                        <td>
+                            {% if can_update %}
+                                <a
+                                    href="{{ url_for('update_product', product_id=product['product_id']) }}"
+                                    class="update-button"
+                                >
+                                    Update
+                                </a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="9">No products found.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-            <tr>
-
-                <td>{{ product.product_id }}</td>
-
-                <td>{{ product.product_name }}</td>
-
-                <td>{{ product.category }}</td>
-
-                <td>₹{{ "%.2f"|format(product.price) }}</td>
-
-                <td>{{ product.quantity }}</td>
-
-                <td>{{ product.reorder_level }}</td>
-
-                <td>{{ product.location or "-" }}</td>
-
-                <td class="status">
-
-                    {% if product.quantity == 0 %}
-
-                        <span class="out-of-stock">
-                            Out of Stock
-                        </span>
-
-                    {% elif product.quantity <= product.reorder_level %}
-
-                        <span class="low-stock">
-                            Low Stock
-                        </span>
-
-                    {% else %}
-
-                        <span class="in-stock">
-                            In Stock
-                        </span>
-
-                    {% endif %}
-
-                </td>
-                <td>
-                    <a href="{{ url_for('update_product', product_id=product.product_id) }}"
-                     class="update-button">
-                     Update
-                    </a>
-</td>
-
-            </tr>
-
-        {% endfor %}
-
-        </tbody>
-
-    </table>
-
-</div>
-
+</main>
 </body>
 </html>
