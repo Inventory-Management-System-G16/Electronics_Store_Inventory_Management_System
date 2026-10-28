@@ -14,6 +14,10 @@
     <nav>
         <strong>Electronics Store Inventory</strong>
 
+        {% if can_dashboard %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        {% endif %}
+
         <span>
             {{ session.get('username') }}
             ({{ session.get('role') }})

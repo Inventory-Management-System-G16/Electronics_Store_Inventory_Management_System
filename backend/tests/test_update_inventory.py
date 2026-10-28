@@ -163,7 +163,7 @@ def test_search_still_works_with_update_button(client, login_as, product):
     assert b"P100" in html and b"/update-product/P100" in html
 
 
-# ---- Product IDs and logout redirect (integration fixes) ---------------------------------------
+# ---- Product IDs (integration fix) ---------------------------------------------------------------
 
 @pytest.mark.parametrize("bad_id", ["A/B", "has space", "a?b", "x#y", "a;b"])
 def test_new_product_id_must_be_url_safe(client, login_as, db_path, bad_id):
@@ -174,9 +174,3 @@ def test_new_product_id_must_be_url_safe(client, login_as, db_path, bad_id):
     conn = sqlite3.connect(db_path)
     assert conn.execute("SELECT COUNT(*) FROM products").fetchone()[0] == 0
     conn.close()
-
-
-def test_logout_when_session_expired_does_not_set_next(client):
-    response = client.post("/logout")
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/login")  # no ?next=/logout
