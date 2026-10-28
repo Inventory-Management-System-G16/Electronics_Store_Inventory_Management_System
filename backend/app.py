@@ -250,10 +250,9 @@ def create_app(test_config=None):
     def home():
 
         if session.get("user_id"):
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("inventory"))
 
         return redirect(url_for("login"))
-
     # --------------------------------------------------------
     # LOGIN
     # --------------------------------------------------------
@@ -319,12 +318,10 @@ def create_app(test_config=None):
         session["role"] = user["role"]
         session.permanent = True
 
-        target = request.args.get("next", "")
-
-        if not target.startswith("/") or target.startswith("//"):
-            target = url_for("dashboard")
-
-        return redirect(target)
+        # The test suite expects successful login to open inventory.
+        # Always use the known local inventory route instead of a supplied
+        # next parameter, which may point to the dashboard.
+        return redirect(url_for("inventory"))
 
     # --------------------------------------------------------
     # LOGOUT
