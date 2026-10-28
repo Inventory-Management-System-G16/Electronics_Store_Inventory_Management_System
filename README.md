@@ -1,23 +1,26 @@
-# ESIMS Sprint 1 — Login, RBAC, Logout and Add Product
+# ESIMS - Electronics Store Inventory Management System (Group 16)
 
-This is a modular Flask implementation for Jira tasks ESIMS-6, ESIMS-7, ESIMS-8 and ESIMS-11. It is based on the Group 16 SRS: current quantity only; no stock-in/stock-out transaction history.
+Flask + MySQL web application. Current quantity only; no stock-in/stock-out history (see SRS).
 
-## Important branch note
+## Sprint 1 features
 
-The uploaded `main` ZIP contains project documents only. The separate `SG-inventory` ZIP contains `backend/app.py` with inventory and update routes. This starter app is runnable on its own and includes basic view/search inventory routes, but it is **not yet merged with the teammate's branch**. Before integration, coordinate with the teammate and reconcile the existing `products` schema and routes. Do not overwrite his branch or force-push.
+| Feature | Owner |
+|---|---|
+| Login, Logout, Role-Based Access Control, Add Product | Shreya C Rao |
+| View Inventory, Search Inventory, Update Product, availability status | Shreyas Gowda K A |
+| Dashboard UI | R Laksheeth |
 
-## 1. Create your feature branch
+Sprint planning notes for the inventory scope are in `docs/sprint1/`.
+
+## 1. Get the code
 
 ```bash
 git clone https://github.com/Inventory-Management-System-G16/Electronics_Store_Inventory_Management_System.git
 cd Electronics_Store_Inventory_Management_System
-git fetch origin
 git switch main
-git pull --ff-only origin main
-git switch -c feature/shreya-sprint1
 ```
 
-This branch starts from `main`, as requested. The code in this folder is a starter implementation to add to that checkout after reviewing existing files. Keep `G16-Documents/` and do not overwrite unrelated files.
+Keep `G16-Documents/` and `docs/` untouched when adding code.
 
 ## 2. Python setup
 
@@ -61,7 +64,7 @@ Browse to `http://127.0.0.1:5000/login`.
 | Reports/dashboard | Yes | Yes | No | Yes |
 | Manage users/settings | Yes | No | No | No |
 
-This starter implements login, logout, inventory view/search and Add Product. The full matrix is documented for integration with routes owned by other team members. Apply `@roles_required(...)` to every protected backend route; hiding buttons is not authorization.
+Implemented so far: login, logout, inventory view/search, Add Product and Update Product. Routes use the `ADD_ROLES` / `UPDATE_ROLES` constants in `backend/app.py`; add `@roles_required(...)` to every new protected route, because hiding buttons is not authorization.
 
 ## 4. Tests
 
