@@ -1,3 +1,88 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ESIMS | Login</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
-<body><main class="card"><h1>ESIMS</h1><p>Electronics Store Inventory Management System</p>{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}<form method="post" action="{{ url_for('login', next=request.args.get('next','')) }}"><label for="username">Username or email</label><input id="username" name="username" autocomplete="username" required maxlength="254"><label for="password">Password</label><input id="password" type="password" name="password" autocomplete="current-password" required><button type="submit">Log in</button></form></main></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ESIMS | Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sr-ui.css') }}">
+</head>
+<body class="ui-page">
+<div class="auth-shell">
+
+    <aside class="auth-brand">
+        <div class="brand">
+            <span class="brand-mark">ES</span>
+            ESIMS
+        </div>
+
+        <div>
+            <h2>Know exactly what is on your shelves.</h2>
+            <p>
+                Electronics Store Inventory Management System: one place to
+                track products, stock levels and availability.
+            </p>
+            <ul class="auth-points">
+                <li>Role-based access for every team member</li>
+                <li>Automatic In Stock, Low Stock and Out of Stock status</li>
+                <li>Live dashboard of your inventory health</li>
+            </ul>
+        </div>
+
+        <small>Group 16 &middot; Software Engineering Mini Project</small>
+    </aside>
+
+    <main class="auth-panel">
+        <form class="auth-form" method="post"
+              action="{{ url_for('login', next=request.args.get('next', '')) }}">
+
+            <h1>Welcome back</h1>
+            <p class="lead">Sign in to manage your inventory.</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <p class="notice {{ category }}" role="status">{{ message }}</p>
+                {% endfor %}
+            {% endwith %}
+
+            {% if error %}
+                <p class="notice error" role="alert">{{ error }}</p>
+            {% endif %}
+
+            <div class="field">
+                <label for="username">Username or email</label>
+                <input id="username" name="username" autocomplete="username"
+                       maxlength="254" required autofocus
+                       placeholder="e.g. manager_demo">
+            </div>
+
+            <div class="field">
+                <label for="password">Password</label>
+                <div class="pw-wrap">
+                    <input id="password" type="password" name="password"
+                           autocomplete="current-password" required
+                           placeholder="Enter your password">
+                    <button type="button" class="pw-toggle" id="pwToggle"
+                            aria-controls="password">Show</button>
+                </div>
+            </div>
+
+            <button class="btn" type="submit">Log in</button>
+        </form>
+    </main>
+
+</div>
+
+<script>
+    (function () {
+        var button = document.getElementById("pwToggle");
+        var input = document.getElementById("password");
+        button.addEventListener("click", function () {
+            var hidden = input.type === "password";
+            input.type = hidden ? "text" : "password";
+            button.textContent = hidden ? "Hide" : "Show";
+        });
+    })();
+</script>
+</body>
+</html>

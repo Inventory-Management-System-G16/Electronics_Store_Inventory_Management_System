@@ -1,0 +1,27 @@
+{# Shared top bar for the Inventory, Add Product and Delete Product pages. #}
+<header class="topbar">
+    <a class="brand" href="{{ url_for('inventory') }}">
+        <span class="brand-mark">ES</span>
+        ESIMS
+    </a>
+
+    <nav class="links" aria-label="Main">
+        <a href="{{ url_for('inventory') }}"
+           {% if active == 'inventory' %}class="active"{% endif %}>Inventory</a>
+        {% if can_add %}
+            <a href="{{ url_for('add_product') }}"
+               {% if active == 'add' %}class="active"{% endif %}>Add product</a>
+        {% endif %}
+        {% if can_dashboard %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        {% endif %}
+    </nav>
+
+    <div class="user">
+        <span>{{ session.get('username') }}</span>
+        <span class="role-pill">{{ (session.get('role') or '')|replace('_', ' ') }}</span>
+        <form method="post" action="{{ url_for('logout') }}">
+            <button class="btn btn-ghost btn-sm" type="submit">Log out</button>
+        </form>
+    </div>
+</header>

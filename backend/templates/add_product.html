@@ -1,1 +1,107 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ESIMS | Add Product</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head><body><main class="card wide"><nav><a href="{{ url_for('inventory') }}">Inventory</a><form method="post" action="{{ url_for('logout') }}"><button class="secondary" type="submit">Log out</button></form></nav><h1>Add product</h1>{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}<form method="post"><label for="product_id">Product ID *</label><input id="product_id" name="product_id" maxlength="30" required value="{{ values.product_id if values else '' }}"><label for="product_name">Product name *</label><input id="product_name" name="product_name" maxlength="100" required value="{{ values.product_name if values else '' }}"><label for="category">Category *</label><input id="category" name="category" maxlength="50" required value="{{ values.category if values else '' }}"><label for="price">Unit price *</label><input id="price" name="price" type="number" min="0" step="0.01" required value="{{ values.price if values else '' }}"><label for="quantity">Quantity *</label><input id="quantity" name="quantity" type="number" min="0" step="1" required value="{{ values.quantity if values else '' }}"><label for="reorder_level">Reorder level *</label><input id="reorder_level" name="reorder_level" type="number" min="0" step="1" required value="{{ values.reorder_level if values else '' }}"><label for="location">Location (optional)</label><input id="location" name="location" maxlength="50" value="{{ values.location if values else '' }}"><button type="submit">Save product</button></form></main></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ESIMS | Add Product</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sr-ui.css') }}">
+</head>
+<body class="ui-page">
+
+{% set active = 'add' %}
+{% include "_topbar.html" %}
+
+{% set fe = field_errors or {} %}
+{% set v = values or {} %}
+
+<main class="page">
+
+    <div class="page-head">
+        <div>
+            <h1>Add product</h1>
+            <p>Create a new product in the inventory.</p>
+        </div>
+    </div>
+
+    <section class="panel form-card">
+
+        {% if error %}
+            <p class="notice error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        <form method="post" novalidate>
+            <div class="form-grid">
+
+                <div class="field {{ 'has-error' if fe.product_id }}">
+                    <label for="product_id">Product ID <span class="req">*</span></label>
+                    <input id="product_id" name="product_id" maxlength="30"
+                           value="{{ v.product_id or '' }}" required
+                           placeholder="e.g. EL-001">
+                    {% if fe.product_id %}
+                        <span class="error-text">{{ fe.product_id }}</span>
+                    {% else %}
+                        <span class="hint">Letters, numbers, - and _ only. Must be unique.</span>
+                    {% endif %}
+                </div>
+
+                <div class="field {{ 'has-error' if fe.product_name }}">
+                    <label for="product_name">Product name <span class="req">*</span></label>
+                    <input id="product_name" name="product_name" maxlength="100"
+                           value="{{ v.product_name or '' }}" required
+                           placeholder="e.g. USB-C Cable">
+                    {% if fe.product_name %}<span class="error-text">{{ fe.product_name }}</span>{% endif %}
+                </div>
+
+                <div class="field {{ 'has-error' if fe.category }}">
+                    <label for="category">Category <span class="req">*</span></label>
+                    <input id="category" name="category" maxlength="50"
+                           value="{{ v.category or '' }}" required
+                           placeholder="e.g. Accessories">
+                    {% if fe.category %}<span class="error-text">{{ fe.category }}</span>{% endif %}
+                </div>
+
+                <div class="field {{ 'has-error' if fe.price }}">
+                    <label for="price">Unit price (₹) <span class="req">*</span></label>
+                    <input id="price" name="price" type="number" min="0" step="0.01"
+                           value="{{ v.price or '' }}" required placeholder="0.00">
+                    {% if fe.price %}<span class="error-text">{{ fe.price }}</span>{% endif %}
+                </div>
+
+                <div class="field {{ 'has-error' if fe.quantity }}">
+                    <label for="quantity">Quantity <span class="req">*</span></label>
+                    <input id="quantity" name="quantity" type="number" min="0" step="1"
+                           value="{{ v.quantity or '' }}" required placeholder="0">
+                    {% if fe.quantity %}<span class="error-text">{{ fe.quantity }}</span>{% endif %}
+                </div>
+
+                <div class="field {{ 'has-error' if fe.reorder_level }}">
+                    <label for="reorder_level">Reorder level <span class="req">*</span></label>
+                    <input id="reorder_level" name="reorder_level" type="number" min="0" step="1"
+                           value="{{ v.reorder_level or '' }}" required placeholder="0">
+                    {% if fe.reorder_level %}
+                        <span class="error-text">{{ fe.reorder_level }}</span>
+                    {% else %}
+                        <span class="hint">At or below this quantity the product shows as Low Stock.</span>
+                    {% endif %}
+                </div>
+
+                <div class="field full {{ 'has-error' if fe.location }}">
+                    <label for="location">Location <span class="hint" style="display:inline">(optional)</span></label>
+                    <input id="location" name="location" maxlength="50"
+                           value="{{ v.location or '' }}" placeholder="e.g. Shelf A2">
+                    {% if fe.location %}<span class="error-text">{{ fe.location }}</span>{% endif %}
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">Save product</button>
+                <a class="btn btn-ghost" href="{{ url_for('inventory') }}">Cancel</a>
+            </div>
+        </form>
+
+    </section>
+</main>
+</body>
+</html>
