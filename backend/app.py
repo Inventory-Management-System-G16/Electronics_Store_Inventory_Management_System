@@ -536,11 +536,13 @@ def create_app(test_config=None):
                 error=error,
             ), 400
 
+        # ESIMS-17: product IDs are unique regardless of upper/lower case
+        # (MySQL already compares them case-insensitively).
         existing = execute(
             """
             SELECT product_id
             FROM products
-            WHERE product_id = %s
+            WHERE UPPER(product_id) = UPPER(%s)
             """,
             (values["product_id"],),
             fetchone=True,
@@ -551,7 +553,8 @@ def create_app(test_config=None):
             return render_template(
                 "add_product.html",
                 values=values,
-                error="Product ID already exists.",
+                field_errors={"product_id": DUPLICATE_MESSAGE},
+                error=DUPLICATE_MESSAGE,
             ), 409
 
         try:
@@ -583,18 +586,16 @@ def create_app(test_config=None):
 
         except Exception as exc:
 
-            message = str(exc).lower()
-
-            if (
-                "duplicate" in message
-                or "unique" in message
-                or "integrity" in message
-            ):
+            # Two users saving the same ID at the same moment: the database
+            # PRIMARY KEY is the final guard (SQLite IntegrityError or
+            # MySQL error 1062).
+            if is_duplicate_key_error(exc):
 
                 return render_template(
                     "add_product.html",
                     values=values,
-                    error="Product ID already exists.",
+                    field_errors={"product_id": DUPLICATE_MESSAGE},
+                    error=DUPLICATE_MESSAGE,
                 ), 409
 
             app.logger.exception(
@@ -774,6 +775,18 @@ def create_app(test_config=None):
 # ============================================================
 # PRODUCT VALIDATION
 # ============================================================
+
+DUPLICATE_MESSAGE = "Product ID already exists. Please use a different ID."
+
+
+def is_duplicate_key_error(error):
+    """True only for a real duplicate-key error (SQLite or MySQL 1062)."""
+
+    if isinstance(error, sqlite3.IntegrityError):
+        return "unique" in str(error).lower()
+
+    return getattr(error, "errno", None) == 1062
+
 
 def validate_product(values, new_product=False):
     """Return a user-safe validation message, or None if fields are valid.
