@@ -46,6 +46,7 @@ ROLES = {
 ADD_ROLES = ("admin", "store_manager")
 UPDATE_ROLES = ("admin", "store_manager", "store_employee")
 DASHBOARD_ROLES = ("admin", "store_manager", "management")
+DELETE_ROLES = ("admin", "store_manager")
 
 PRODUCT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
@@ -233,6 +234,7 @@ def create_app(test_config=None):
         return {
             "can_add": role in ADD_ROLES,
             "can_update": role in UPDATE_ROLES,
+            "can_delete": role in DELETE_ROLES,
             "can_dashboard": role in DASHBOARD_ROLES,
         }
 
@@ -524,21 +526,24 @@ def create_app(test_config=None):
             ).strip(),
         }
 
-        error = validate_product(values, new_product=True)
+        field_errors = validate_product_fields(values, new_product=True)
 
-        if error:
+        if field_errors:
 
             return render_template(
                 "add_product.html",
                 values=values,
-                error=error,
+                field_errors=field_errors,
+                error="Please correct the highlighted fields.",
             ), 400
 
+        # ESIMS-17: product IDs are unique regardless of upper/lower case
+        # (MySQL already compares them case-insensitively).
         existing = execute(
             """
             SELECT product_id
             FROM products
-            WHERE product_id = %s
+            WHERE UPPER(product_id) = UPPER(%s)
             """,
             (values["product_id"],),
             fetchone=True,
@@ -549,7 +554,8 @@ def create_app(test_config=None):
             return render_template(
                 "add_product.html",
                 values=values,
-                error="Product ID already exists.",
+                field_errors={"product_id": DUPLICATE_MESSAGE},
+                error=DUPLICATE_MESSAGE,
             ), 409
 
         try:
@@ -581,18 +587,16 @@ def create_app(test_config=None):
 
         except Exception as exc:
 
-            message = str(exc).lower()
-
-            if (
-                "duplicate" in message
-                or "unique" in message
-                or "integrity" in message
-            ):
+            # Two users saving the same ID at the same moment: the database
+            # PRIMARY KEY is the final guard (SQLite IntegrityError or
+            # MySQL error 1062).
+            if is_duplicate_key_error(exc):
 
                 return render_template(
                     "add_product.html",
                     values=values,
-                    error="Product ID already exists.",
+                    field_errors={"product_id": DUPLICATE_MESSAGE},
+                    error=DUPLICATE_MESSAGE,
                 ), 409
 
             app.logger.exception(
@@ -607,6 +611,75 @@ def create_app(test_config=None):
 
         flash(
             "Product added successfully.",
+            "success",
+        )
+
+        return redirect(url_for("inventory"))
+
+    # --------------------------------------------------------
+    # DELETE PRODUCT (ESIMS-13: FR-INV-05, FR-INV-06)
+    # --------------------------------------------------------
+
+    @app.get("/delete-product/<product_id>")
+    @roles_required(*DELETE_ROLES)
+    def confirm_delete_product(product_id):
+        """Show the confirmation page. Nothing is deleted on a GET."""
+
+        product = execute(
+            """
+            SELECT product_id, product_name, category,
+                   quantity, reorder_level
+            FROM products
+            WHERE product_id = %s
+            """,
+            (product_id,),
+            fetchone=True,
+        )
+
+        if not product:
+            abort(404)
+
+        return render_template(
+            "delete_product.html",
+            product=product,
+        )
+
+    @app.post("/delete-product/<product_id>")
+    @roles_required(*DELETE_ROLES)
+    def delete_product(product_id):
+        """Delete the product after the user confirmed on the page."""
+
+        product = execute(
+            "SELECT product_id, product_name FROM products "
+            "WHERE product_id = %s",
+            (product_id,),
+            fetchone=True,
+        )
+
+        if not product:
+            abort(404)
+
+        try:
+
+            execute(
+                "DELETE FROM products WHERE product_id = %s",
+                (product_id,),
+                commit=True,
+            )
+
+        except Exception:
+
+            app.logger.exception("Database error while deleting product")
+
+            flash(
+                "Could not delete the product. Please try again.",
+                "error",
+            )
+
+            return redirect(url_for("inventory"))
+
+        flash(
+            f"Product {product['product_id']} was deleted.",
             "success",
         )
 
@@ -703,6 +776,105 @@ def create_app(test_config=None):
 # ============================================================
 # PRODUCT VALIDATION
 # ============================================================
+
+DUPLICATE_MESSAGE = "Product ID already exists. Please use a different ID."
+
+
+def is_duplicate_key_error(error):
+    """True only for a real duplicate-key error (SQLite or MySQL 1062)."""
+
+    if isinstance(error, sqlite3.IntegrityError):
+        return "unique" in str(error).lower()
+
+    return getattr(error, "errno", None) == 1062
+
+
+def validate_product_fields(values, new_product=False):
+    """Validate every field and return {field: message} (empty if valid).
+
+    ESIMS-18 (numeric) and ESIMS-19 (mandatory fields): each problem is
+    reported next to its own field instead of one generic message.
+    """
+
+    errors = {}
+
+    labels = {
+        "product_id": "Product ID",
+        "product_name": "Product name",
+        "category": "Category",
+        "price": "Price",
+        "quantity": "Quantity",
+        "reorder_level": "Reorder level",
+    }
+
+    # ESIMS-19: mandatory fields
+    for field, label in labels.items():
+
+        if not values.get(field):
+            errors[field] = f"{label} is required."
+
+    # product ID format (only for new products)
+    if (
+        "product_id" not in errors
+        and new_product
+        and not PRODUCT_ID_PATTERN.match(values["product_id"])
+    ):
+        errors["product_id"] = (
+            "Product ID may contain only letters, numbers, "
+            "'-' and '_'."
+        )
+
+    # maximum lengths
+    limits = {
+        "product_id": 30,
+        "product_name": 100,
+        "category": 50,
+        "location": 50,
+    }
+
+    for field, maximum in limits.items():
+
+        if field not in errors and len(values.get(field, "")) > maximum:
+            label = labels.get(field, "Location")
+            errors[field] = f"{label} must be at most {maximum} characters."
+
+    # ESIMS-18: numeric fields
+    if "price" not in errors:
+
+        try:
+            price = Decimal(values["price"])
+        except (ValueError, ArithmeticError):
+            errors["price"] = "Price must be a valid number."
+        else:
+            if not price.is_finite():
+                errors["price"] = "Price must be a valid number."
+            elif price < 0:
+                errors["price"] = "Price cannot be negative."
+            elif price.as_tuple().exponent < -2:
+                errors["price"] = "Price can have at most 2 decimal places."
+            elif price > Decimal("99999999.99"):
+                errors["price"] = "Price is too large."
+
+    for field in ("quantity", "reorder_level"):
+
+        if field in errors:
+            continue
+
+        label = labels[field]
+
+        if not re.fullmatch(r"-?[0-9]+", values[field]):
+            errors[field] = f"{label} must be a whole number."
+            continue
+
+        number = int(values[field])
+
+        if number < 0:
+            errors[field] = f"{label} cannot be negative."
+        elif number > 2147483647:
+            errors[field] = f"{label} is too large."
+
+    return errors
+
 
 def validate_product(values, new_product=False):
     """Return a user-safe validation message, or None if fields are valid.

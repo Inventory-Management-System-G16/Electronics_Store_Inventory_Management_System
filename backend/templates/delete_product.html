@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ESIMS | Delete Product</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sr-ui.css') }}">
+</head>
+<body class="ui-page">
+
+{% set active = 'inventory' %}
+{% include "_topbar.html" %}
+
+<main class="page">
+
+    <div class="page-head">
+        <div>
+            <h1>Delete product</h1>
+            <p>Please confirm before removing this product.</p>
+        </div>
+    </div>
+
+    <section class="panel form-card">
+
+        <p>
+            Are you sure you want to permanently delete
+            <strong>{{ product.product_name }}</strong>?
+            This cannot be undone.
+        </p>
+
+        <div class="confirm-box">
+            <dl>
+                <dt>Product ID</dt><dd>{{ product.product_id }}</dd>
+                <dt>Name</dt><dd>{{ product.product_name }}</dd>
+                <dt>Category</dt><dd>{{ product.category }}</dd>
+                <dt>Quantity in stock</dt><dd>{{ product.quantity }}</dd>
+            </dl>
+        </div>
+
+        <form method="post"
+              action="{{ url_for('delete_product', product_id=product.product_id) }}">
+            <div class="form-actions">
+                <button class="btn btn-danger" type="submit">Yes, delete product</button>
+                <a class="btn btn-ghost" href="{{ url_for('inventory') }}">Cancel</a>
+            </div>
+        </form>
+
+    </section>
+</main>
+</body>
+</html>
