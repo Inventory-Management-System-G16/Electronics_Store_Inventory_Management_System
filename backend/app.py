@@ -46,6 +46,7 @@ ROLES = {
 ADD_ROLES = ("admin", "store_manager")
 UPDATE_ROLES = ("admin", "store_manager", "store_employee")
 DASHBOARD_ROLES = ("admin", "store_manager", "management")
+DELETE_ROLES = ("admin", "store_manager")
 
 PRODUCT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
@@ -233,6 +234,7 @@ def create_app(test_config=None):
         return {
             "can_add": role in ADD_ROLES,
             "can_update": role in UPDATE_ROLES,
+            "can_delete": role in DELETE_ROLES,
             "can_dashboard": role in DASHBOARD_ROLES,
         }
 
@@ -607,6 +609,75 @@ def create_app(test_config=None):
 
         flash(
             "Product added successfully.",
+            "success",
+        )
+
+        return redirect(url_for("inventory"))
+
+    # --------------------------------------------------------
+    # DELETE PRODUCT (ESIMS-13: FR-INV-05, FR-INV-06)
+    # --------------------------------------------------------
+
+    @app.get("/delete-product/<product_id>")
+    @roles_required(*DELETE_ROLES)
+    def confirm_delete_product(product_id):
+        """Show the confirmation page. Nothing is deleted on a GET."""
+
+        product = execute(
+            """
+            SELECT product_id, product_name, category,
+                   quantity, reorder_level
+            FROM products
+            WHERE product_id = %s
+            """,
+            (product_id,),
+            fetchone=True,
+        )
+
+        if not product:
+            abort(404)
+
+        return render_template(
+            "delete_product.html",
+            product=product,
+        )
+
+    @app.post("/delete-product/<product_id>")
+    @roles_required(*DELETE_ROLES)
+    def delete_product(product_id):
+        """Delete the product after the user confirmed on the page."""
+
+        product = execute(
+            "SELECT product_id, product_name FROM products "
+            "WHERE product_id = %s",
+            (product_id,),
+            fetchone=True,
+        )
+
+        if not product:
+            abort(404)
+
+        try:
+
+            execute(
+                "DELETE FROM products WHERE product_id = %s",
+                (product_id,),
+                commit=True,
+            )
+
+        except Exception:
+
+            app.logger.exception("Database error while deleting product")
+
+            flash(
+                "Could not delete the product. Please try again.",
+                "error",
+            )
+
+            return redirect(url_for("inventory"))
+
+        flash(
+            f"Product {product['product_id']} was deleted.",
             "success",
         )
 
