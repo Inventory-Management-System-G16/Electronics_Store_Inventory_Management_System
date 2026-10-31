@@ -526,14 +526,15 @@ def create_app(test_config=None):
             ).strip(),
         }
 
-        error = validate_product(values, new_product=True)
+        field_errors = validate_product_fields(values, new_product=True)
 
-        if error:
+        if field_errors:
 
             return render_template(
                 "add_product.html",
                 values=values,
-                error=error,
+                field_errors=field_errors,
+                error="Please correct the highlighted fields.",
             ), 400
 
         # ESIMS-17: product IDs are unique regardless of upper/lower case
@@ -786,6 +787,93 @@ def is_duplicate_key_error(error):
         return "unique" in str(error).lower()
 
     return getattr(error, "errno", None) == 1062
+
+
+def validate_product_fields(values, new_product=False):
+    """Validate every field and return {field: message} (empty if valid).
+
+    ESIMS-18 (numeric) and ESIMS-19 (mandatory fields): each problem is
+    reported next to its own field instead of one generic message.
+    """
+
+    errors = {}
+
+    labels = {
+        "product_id": "Product ID",
+        "product_name": "Product name",
+        "category": "Category",
+        "price": "Price",
+        "quantity": "Quantity",
+        "reorder_level": "Reorder level",
+    }
+
+    # ESIMS-19: mandatory fields
+    for field, label in labels.items():
+
+        if not values.get(field):
+            errors[field] = f"{label} is required."
+
+    # product ID format (only for new products)
+    if (
+        "product_id" not in errors
+        and new_product
+        and not PRODUCT_ID_PATTERN.match(values["product_id"])
+    ):
+        errors["product_id"] = (
+            "Product ID may contain only letters, numbers, "
+            "'-' and '_'."
+        )
+
+    # maximum lengths
+    limits = {
+        "product_id": 30,
+        "product_name": 100,
+        "category": 50,
+        "location": 50,
+    }
+
+    for field, maximum in limits.items():
+
+        if field not in errors and len(values.get(field, "")) > maximum:
+            label = labels.get(field, "Location")
+            errors[field] = f"{label} must be at most {maximum} characters."
+
+    # ESIMS-18: numeric fields
+    if "price" not in errors:
+
+        try:
+            price = Decimal(values["price"])
+        except (ValueError, ArithmeticError):
+            errors["price"] = "Price must be a valid number."
+        else:
+            if not price.is_finite():
+                errors["price"] = "Price must be a valid number."
+            elif price < 0:
+                errors["price"] = "Price cannot be negative."
+            elif price.as_tuple().exponent < -2:
+                errors["price"] = "Price can have at most 2 decimal places."
+            elif price > Decimal("99999999.99"):
+                errors["price"] = "Price is too large."
+
+    for field in ("quantity", "reorder_level"):
+
+        if field in errors:
+            continue
+
+        label = labels[field]
+
+        if not re.fullmatch(r"-?[0-9]+", values[field]):
+            errors[field] = f"{label} must be a whole number."
+            continue
+
+        number = int(values[field])
+
+        if number < 0:
+            errors[field] = f"{label} cannot be negative."
+        elif number > 2147483647:
+            errors[field] = f"{label} is too large."
+
+    return errors
 
 
 def validate_product(values, new_product=False):
