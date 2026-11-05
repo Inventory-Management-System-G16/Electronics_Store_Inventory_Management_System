@@ -5,6 +5,7 @@ role-based access control, and Availability Report (ESIMS-14).
 """
 
 import os
+import re
 import sqlite3
 from pathlib import Path
 from decimal import Decimal
@@ -31,6 +32,14 @@ ROLES = {
     "store_employee",
     "management",
 }
+
+# Who may do what (matches the role table in README.md).
+# Routes and templates both use these constants.
+ADD_ROLES = ("admin", "store_manager")
+UPDATE_ROLES = ("admin", "store_manager", "store_employee")
+DASHBOARD_ROLES = ("admin", "store_manager", "management")
+
+PRODUCT_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]+$")
 
 
 # ============================================================
@@ -173,6 +182,15 @@ def create_app(test_config=None):
 
     app.teardown_appcontext(close_db)
 
+    @app.context_processor
+    def inject_permissions():
+        role = session.get("role")
+        return {
+            "can_add": role in ADD_ROLES,
+            "can_update": role in UPDATE_ROLES,
+            "can_dashboard": role in DASHBOARD_ROLES,
+        }
+
     # --------------------------------------------------------
     # SECURITY HEADERS
     # --------------------------------------------------------
@@ -259,7 +277,7 @@ def create_app(test_config=None):
     # --------------------------------------------------------
 
     @app.get("/dashboard")
-    @login_required
+    @roles_required(*DASHBOARD_ROLES)
     def dashboard():
         total_products = execute(
             "SELECT COUNT(*) AS total FROM products",
@@ -397,7 +415,7 @@ def create_app(test_config=None):
     # --------------------------------------------------------
 
     @app.route("/add-product", methods=["GET", "POST"])
-    @roles_required("admin", "store_manager")
+    @roles_required(*ADD_ROLES)
     def add_product():
         if request.method == "GET":
             return render_template("add_product.html")
@@ -412,7 +430,7 @@ def create_app(test_config=None):
             "location": request.form.get("location", "").strip(),
         }
 
-        error = validate_product(values)
+        error = validate_product(values, new_product=True)
 
         if error:
             return render_template(
@@ -479,6 +497,82 @@ def create_app(test_config=None):
         return redirect(url_for("inventory"))
 
     # --------------------------------------------------------
+    # UPDATE PRODUCT
+    # --------------------------------------------------------
+
+    @app.route("/update-product/<product_id>", methods=["GET", "POST"])
+    @roles_required(*UPDATE_ROLES)
+    def update_product(product_id):
+        product = execute(
+            """
+            SELECT product_id, product_name, category, price,
+                   quantity, reorder_level, location
+            FROM products
+            WHERE product_id = %s
+            """,
+            (product_id,),
+            fetchone=True,
+        )
+
+        if not product:
+            abort(404)
+
+        if request.method == "GET":
+            return render_template("update_product.html", product=product)
+
+        values = {
+            "product_id": product_id,
+            "product_name": request.form.get("product_name", "").strip(),
+            "category": request.form.get("category", "").strip(),
+            "price": request.form.get("price", "").strip(),
+            "quantity": request.form.get("quantity", "").strip(),
+            "reorder_level": request.form.get("reorder_level", "").strip(),
+            "location": request.form.get("location", "").strip(),
+        }
+
+        error = validate_product(values)
+        if error:
+            return render_template(
+                "update_product.html",
+                product={**dict(product), **values},
+                error=error,
+            ), 400
+
+        try:
+            execute(
+                """
+                UPDATE products
+                SET product_name = %s,
+                    category = %s,
+                    price = %s,
+                    quantity = %s,
+                    reorder_level = %s,
+                    location = %s
+                WHERE product_id = %s
+                """,
+                (
+                    values["product_name"],
+                    values["category"],
+                    str(Decimal(values["price"])),
+                    int(values["quantity"]),
+                    int(values["reorder_level"]),
+                    values["location"] or None,
+                    product_id,
+                ),
+                commit=True,
+            )
+        except Exception:
+            app.logger.exception("Database error while updating product")
+            return render_template(
+                "update_product.html",
+                product={**dict(product), **values},
+                error="Could not update the product. Please try again.",
+            ), 500
+
+        flash("Product updated successfully.", "success")
+        return redirect(url_for("inventory"))
+
+    # --------------------------------------------------------
     # FORBIDDEN PAGE
     # --------------------------------------------------------
 
@@ -493,7 +587,12 @@ def create_app(test_config=None):
 # PRODUCT VALIDATION
 # ============================================================
 
-def validate_product(values):
+def validate_product(values, new_product=False):
+    """Return a validation message, or None when the product is valid.
+
+    For new products, restrict IDs to letters, numbers, hyphens, and
+    underscores so they can safely be used in update-product URLs.
+    """
     required = (
         "product_id",
         "product_name",
@@ -505,6 +604,10 @@ def validate_product(values):
 
     if any(not values.get(field) for field in required):
         return "Please fill in all required fields."
+
+    if new_product and not PRODUCT_ID_PATTERN.match(values["product_id"]):
+
+        return "Product ID may contain only letters, numbers, '-' and '_'."
 
     limits = {
         "product_id": 30,
@@ -558,3 +661,5 @@ if __name__ == "__main__":
         port=5000,
         debug=os.environ.get("FLASK_DEBUG", "0") == "1",
     )
+
+

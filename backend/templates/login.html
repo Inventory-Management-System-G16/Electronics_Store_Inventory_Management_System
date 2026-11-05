@@ -1,3 +1,284 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ESIMS | Login</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
-<body><main class="card"><h1>ESIMS</h1><p>Electronics Store Inventory Management System</p>{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}<form method="post" action="{{ url_for('login', next=request.args.get('next','')) }}"><label for="username">Username or email</label><input id="username" name="username" autocomplete="username" required maxlength="254"><label for="password">Password</label><input id="password" type="password" name="password" autocomplete="current-password" required><button type="submit">Log in</button></form></main></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Electronics Store Inventory</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle at 15% 20%, #4338ca 0, transparent 35%),
+                radial-gradient(circle at 85% 80%, #7c3aed 0, transparent 35%),
+                linear-gradient(135deg, #101936, #172554 55%, #312e81);
+        }
+
+        .login-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            max-width: 950px;
+            min-height: 540px;
+            overflow: hidden;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+        }
+
+        .login-banner {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 48px;
+            color: #ffffff;
+            background: linear-gradient(145deg, #3730a3, #4f46e5 55%, #8b5cf6);
+        }
+
+        .brand-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 66px;
+            height: 66px;
+            margin-bottom: 28px;
+            background: rgba(255, 255, 255, 0.17);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 18px;
+            font-size: 32px;
+        }
+
+        .login-banner h1 {
+            margin: 0 0 18px;
+            color: #ffffff;
+            font-size: 34px;
+            line-height: 1.25;
+        }
+
+        .login-banner p {
+            color: #e0e7ff;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        .feature-list {
+            margin-top: 28px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .feature-list li {
+            margin: 15px 0;
+            color: #f5f3ff;
+            font-size: 14px;
+        }
+
+        .login-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 48px;
+        }
+
+        .login-panel h2 {
+            margin: 0 0 8px;
+            color: #172554;
+            font-size: 29px;
+        }
+
+        .login-subtitle {
+            margin: 0 0 28px;
+            color: #75809a;
+            font-size: 14px;
+        }
+
+        .login-panel label {
+            display: block;
+            margin: 18px 0 7px;
+            color: #34405f;
+            font-size: 14px;
+            font-weight: 650;
+        }
+
+        .login-panel input[type="text"],
+        .login-panel input[type="email"],
+        .login-panel input[type="password"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px 14px;
+            color: #18213b;
+            background: #f9faff;
+            border: 1px solid #dce2f0;
+            border-radius: 10px;
+            font: inherit;
+            outline: none;
+            transition: 0.2s ease;
+        }
+
+        .login-panel input:focus {
+            background: #ffffff;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+        }
+
+        .login-submit {
+            width: 100%;
+            margin-top: 26px;
+            padding: 14px;
+            color: #ffffff;
+            background: linear-gradient(100deg, #4f46e5, #7c3aed);
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.22);
+            transition: 0.2s ease;
+        }
+
+        .login-submit:hover {
+            background: linear-gradient(100deg, #3730a3, #6d28d9);
+            transform: translateY(-2px);
+        }
+
+        .login-error {
+            margin: 14px 0;
+            padding: 12px;
+            color: #b91c1c;
+            background: #fff0f0;
+            border: 1px solid #fecaca;
+            border-radius: 9px;
+            font-size: 14px;
+        }
+
+        .login-footer {
+            margin-top: 24px;
+            color: #929bb0;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 14px;
+            }
+
+            .login-layout {
+                grid-template-columns: 1fr;
+                max-width: 440px;
+            }
+
+            .login-banner {
+                padding: 28px;
+            }
+
+            .login-banner h1 {
+                font-size: 27px;
+            }
+
+            .feature-list {
+                display: none;
+            }
+
+            .brand-icon {
+                margin-bottom: 16px;
+            }
+
+            .login-panel {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="login-layout">
+
+        <!-- Left welcome panel -->
+        <section class="login-banner">
+
+            <div class="brand-icon">📦</div>
+
+            <h1>Electronics Store<br>Inventory System</h1>
+
+            <p>
+                Manage your inventory with clarity.
+                Monitor products, track stock levels, and
+                keep your store organised in one place.
+            </p>
+
+            <ul class="feature-list">
+                <li>✓ &nbsp; Inventory overview</li>
+                <li>✓ &nbsp; Stock-level monitoring</li>
+                <li>✓ &nbsp; Simple inventory management</li>
+            </ul>
+
+        </section>
+
+        <!-- Right login panel -->
+        <section class="login-panel">
+
+            <h2>Welcome back!</h2>
+
+            <p class="login-subtitle">
+                Sign in to access your inventory dashboard.
+            </p>
+
+            <!-- Flask login form -->
+            <form method="POST"
+                  action="{{ url_for('login', next=request.args.get('next', '')) }}">
+
+                <label for="username">Username or email</label>
+
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username or email"
+                    autocomplete="username"
+                    maxlength="254"
+                    required
+                >
+
+                <label for="password">Password</label>
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
+
+                {% if error %}
+                    <div class="login-error" role="alert">
+                        {{ error }}
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="login-submit">
+                    Sign In
+                </button>
+
+            </form>
+
+            <div class="login-footer">
+                Electronics Store Inventory Management System
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

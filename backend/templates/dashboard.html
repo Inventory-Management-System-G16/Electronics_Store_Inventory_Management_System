@@ -4,11 +4,452 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Inventory Dashboard</title>
+
+    <!-- Connect external CSS -->
+    <link rel="stylesheet"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management | Dashboard</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
 
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f4f7fc;
+            color: #1e293b;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: #172554;
+            color: white;
+            padding: 30px 18px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-size: 21px;
+            font-weight: 750;
+            padding: 0 12px 35px;
+        }
+
+        .brand span {
+            color: #60a5fa;
+        }
+
+        .menu-title {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 0 12px;
+            margin-bottom: 15px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 13px 14px;
+            margin-bottom: 9px;
+            color: #dbeafe;
+            text-decoration: none;
+            border-radius: 9px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .menu a:hover,
+        .menu a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 35px 40px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 35px;
+        }
+
+        .heading h1 {
+            margin: 0 0 8px;
+            font-size: 29px;
+            color: #172554;
+        }
+
+        .heading p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .status {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 9px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* Welcome section */
+        .welcome-card {
+            background: linear-gradient(120deg, #1d4ed8, #4f46e5);
+            color: white;
+            padding: 28px 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+        }
+
+        .welcome-card h2 {
+            margin: 0 0 10px;
+            font-size: 23px;
+        }
+
+        .welcome-card p {
+            margin: 0;
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        /* Statistics */
+        .section-heading {
+            font-size: 18px;
+            margin: 0 0 18px;
+            color: #172554;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 23px;
+            border-radius: 14px;
+            border: 1px solid #e8edf5;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 9px 22px rgba(15, 23, 42, 0.09);
+        }
+
+        .metric-icon {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 22px;
+            margin-bottom: 18px;
+        }
+
+        .products-icon {
+            background: #dbeafe;
+        }
+
+        .stock-icon {
+            background: #dcfce7;
+        }
+
+        .low-icon {
+            background: #fef3c7;
+        }
+
+        .out-icon {
+            background: #fee2e2;
+        }
+
+        .metric-label {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 9px;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 750;
+            color: #172554;
+        }
+
+        .metric-description {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 9px;
+            line-height: 1.5;
+        }
+
+        /* Quick actions */
+        .quick-section {
+            margin-top: 35px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .action-card {
+            background: white;
+            border: 1px solid #e8edf5;
+            border-radius: 13px;
+            padding: 22px;
+            text-decoration: none;
+            color: #1e293b;
+            transition: 0.2s;
+        }
+
+        .action-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-3px);
+        }
+
+        .action-card h3 {
+            margin: 0 0 8px;
+            color: #1d4ed8;
+            font-size: 16px;
+        }
+
+        .action-card p {
+            margin: 0;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* Logout */
+        .logout-form {
+            margin-top: 35px;
+        }
+
+        .logout-button {
+            width: 100%;
+            padding: 12px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 9px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .logout-button:hover {
+            background: #b91c1c;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 700px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 18px;
+            }
+
+            .brand {
+                padding-bottom: 18px;
+            }
+
+            .menu {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .menu a {
+                margin: 0;
+            }
+
+            .main-content {
+                padding: 22px 16px;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .dashboard-grid,
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="brand">
+            ELECTRO<span>STORE</span>
+        </div>
+
+        <div class="menu-title">MAIN MENU</div>
+
+        <nav class="menu">
+            <a href="{{ url_for('dashboard') }}" class="active">
+                🏠 Dashboard
+            </a>
+
+            <a href="{{ url_for('inventory') }}">
+                📦 Inventory
+            </a>
+
+            <a href="{{ url_for('availability_report') }}">
+                📊 Availability Report
+            </a>
+        </nav>
+
+        <form method="POST" action="{{ url_for('logout') }}"
+              class="logout-form">
+            <button type="submit" class="logout-button">
+                ↪ Log Out
+            </button>
+        </form>
+
+    </aside>
+
+    <!-- Main Dashboard -->
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="heading">
+                <h1>Dashboard Overview</h1>
+                <p>Monitor and manage your electronics store inventory.</p>
+            </div>
+
+            <div class="status">
+                ● System Active
+            </div>
+        </header>
+
+        <!-- Welcome -->
+        <section class="welcome-card">
+            <h2>Welcome to ElectroStore 👋</h2>
+            <p>
+                Here's an overview of your inventory and current stock status.
+            </p>
+        </section>
+
+        <!-- Statistics -->
+        <h2 class="section-heading">Inventory Summary</h2>
+
+        <section class="dashboard-grid">
+
+            <article class="metric-card">
+                <div class="metric-icon products-icon">📦</div>
+                <div class="metric-label">Total Products</div>
+                <div class="metric-value">{{ total_products }}</div>
+                <div class="metric-description">
+                    Products registered in your inventory.
+                </div>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-icon stock-icon">📊</div>
+                <div class="metric-label">Total Stock Quantity</div>
+                <div class="metric-value">{{ total_stock }}</div>
+                <div class="metric-description">
+                    Combined quantity of all products.
+                </div>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-icon low-icon">⚠️</div>
+                <div class="metric-label">Low Stock</div>
+                <div class="metric-value">{{ low_stock }}</div>
+                <div class="metric-description">
+                    Products requiring stock attention.
+                </div>
+            </article>
+
+            <article class="metric-card">
+                <div class="metric-icon out-icon">🚫</div>
+                <div class="metric-label">Out of Stock</div>
+                <div class="metric-value">{{ out_of_stock }}</div>
+                <div class="metric-description">
+                    Products with zero available quantity.
+                </div>
+            </article>
+
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="quick-section">
+
+            <h2 class="section-heading">Quick Access</h2>
+
+            <div class="quick-actions">
+
+                <a href="{{ url_for('inventory') }}"
+                   class="action-card">
+                    <h3>📦 View Inventory →</h3>
+                    <p>View and manage all products in your store.</p>
+                </a>
+
+                <a href="{{ url_for('availability_report') }}"
+                   class="action-card">
+                    <h3>📈 Availability Report →</h3>
+                    <p>Check product availability and stock information.</p>
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Dashboard-specific styles -->
     <style>
         .dashboard {
             max-width: 1100px;
@@ -75,9 +516,14 @@
 
         .dashboard-actions {
             display: flex;
+            align-items: center;
             gap: 12px;
             flex-wrap: wrap;
             margin-top: 28px;
+        }
+
+        .dashboard-actions form {
+            margin: 0;
         }
 
         .dashboard-button {
@@ -95,6 +541,8 @@
 
         .dashboard-button:hover {
             background: #1d4ed8;
+            color: #ffffff;
+            text-decoration: none;
         }
 
         @media (max-width: 600px) {
@@ -113,16 +561,22 @@
 <body>
     <main class="dashboard">
 
+        <!-- Dashboard heading -->
         <header class="dashboard-header">
             <h1>Inventory Dashboard</h1>
             <p>Monitor your store's inventory at a glance.</p>
         </header>
 
+        <!-- Inventory statistics -->
         <section class="dashboard-grid">
 
             <article class="metric-card">
                 <h2>📦 Total Products</h2>
-                <div class="metric-value">{{ total_products }}</div>
+
+                <div class="metric-value">
+                    {{ total_products }}
+                </div>
+
                 <p class="metric-description">
                     Total products registered in the inventory.
                 </p>
@@ -130,7 +584,11 @@
 
             <article class="metric-card stock-card">
                 <h2>📊 Total Stock Quantity</h2>
-                <div class="metric-value">{{ total_stock }}</div>
+
+                <div class="metric-value">
+                    {{ total_stock }}
+                </div>
+
                 <p class="metric-description">
                     Combined quantity of all products.
                 </p>
@@ -138,15 +596,24 @@
 
             <article class="metric-card low-card">
                 <h2>⚠️ Low-Stock Count</h2>
-                <div class="metric-value">{{ low_stock }}</div>
+
+                <div class="metric-value">
+                    {{ low_stock }}
+                </div>
+
                 <p class="metric-description">
-                    Products at or below their reorder level, excluding zero stock.
+                    Products at or below their reorder level,
+                    excluding zero stock.
                 </p>
             </article>
 
             <article class="metric-card out-card">
                 <h2>🔴 Out-of-Stock Count</h2>
-                <div class="metric-value">{{ out_of_stock }}</div>
+
+                <div class="metric-value">
+                    {{ out_of_stock }}
+                </div>
+
                 <p class="metric-description">
                     Products that currently have zero stock.
                 </p>
@@ -154,7 +621,9 @@
 
         </section>
 
+        <!-- Dashboard navigation -->
         <nav class="dashboard-actions">
+
             <a class="dashboard-button"
                href="{{ url_for('inventory') }}">
                 View Inventory
@@ -165,9 +634,10 @@
                     Log Out
                 </button>
             </form>
+
         </nav>
 
     </main>
 </body>
 </html>
-```
+

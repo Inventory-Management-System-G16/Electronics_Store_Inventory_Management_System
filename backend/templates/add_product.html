@@ -1,1 +1,1209 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ESIMS | Add Product</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head><body><main class="card wide"><nav><a href="{{ url_for('inventory') }}">Inventory</a><form method="post" action="{{ url_for('logout') }}"><button class="secondary" type="submit">Log out</button></form></nav><h1>Add product</h1>{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}<form method="post"><label for="product_id">Product ID *</label><input id="product_id" name="product_id" maxlength="30" required value="{{ values.product_id if values else '' }}"><label for="product_name">Product name *</label><input id="product_name" name="product_name" maxlength="100" required value="{{ values.product_name if values else '' }}"><label for="category">Category *</label><input id="category" name="category" maxlength="50" required value="{{ values.category if values else '' }}"><label for="price">Unit price *</label><input id="price" name="price" type="number" min="0" step="0.01" required value="{{ values.price if values else '' }}"><label for="quantity">Quantity *</label><input id="quantity" name="quantity" type="number" min="0" step="1" required value="{{ values.quantity if values else '' }}"><label for="reorder_level">Reorder level *</label><input id="reorder_level" name="reorder_level" type="number" min="0" step="1" required value="{{ values.reorder_level if values else '' }}"><label for="location">Location (optional)</label><input id="location" name="location" maxlength="50" value="{{ values.location if values else '' }}"><button type="submit">Save product</button></form></main></body></html>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ESIMS | Inventory Management</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f3f6fc;
+            color: #1e293b;
+        }
+
+        button, input, select {
+            font: inherit;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* ================= SIDEBAR ================= */
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 255px;
+            background: #172554;
+            color: white;
+            padding: 28px 18px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 800;
+            padding: 0 12px 38px;
+            letter-spacing: 0.5px;
+        }
+
+        .brand span {
+            color: #60a5fa;
+        }
+
+        .menu-title {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 0 12px;
+            margin-bottom: 15px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 14px;
+            margin-bottom: 8px;
+            color: #dbeafe;
+            border-radius: 9px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .menu a:hover,
+        .menu a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+        }
+
+        .user-box {
+            padding: 15px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            margin-top: 35px;
+            font-size: 13px;
+            color: #dbeafe;
+            overflow-wrap: anywhere;
+        }
+
+        .user-box strong {
+            color: white;
+        }
+
+        .logout-button {
+            margin-top: 14px;
+            width: 100%;
+            padding: 12px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .logout-button:hover {
+            background: #b91c1c;
+        }
+
+        /* ================= MAIN CONTENT ================= */
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 32px 38px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 28px;
+        }
+
+        .heading h1 {
+            margin: 0 0 7px;
+            font-size: 29px;
+            color: #172554;
+        }
+
+        .heading p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .system-status {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 9px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* ================= WELCOME BANNER ================= */
+
+        .welcome-banner {
+            background: linear-gradient(120deg, #1d4ed8, #6366f1);
+            color: white;
+            padding: 26px 30px;
+            border-radius: 15px;
+            margin-bottom: 28px;
+            box-shadow: 0 8px 25px rgba(37,99,235,0.14);
+        }
+
+        .welcome-banner h2 {
+            margin: 0 0 9px;
+            font-size: 23px;
+        }
+
+        .welcome-banner p {
+            margin: 0;
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        /* ================= SUMMARY CARDS ================= */
+
+        .section-title {
+            font-size: 18px;
+            color: #172554;
+            margin: 0 0 17px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 17px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 21px;
+            border-radius: 13px;
+            border: 1px solid #e8edf5;
+            box-shadow: 0 4px 14px rgba(15,23,42,0.04);
+            transition: 0.2s;
+            min-width: 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(15,23,42,0.08);
+        }
+
+        .stat-icon {
+            width: 43px;
+            height: 43px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            font-size: 21px;
+            margin-bottom: 15px;
+        }
+
+        .blue-icon {
+            background: #dbeafe;
+        }
+
+        .green-icon {
+            background: #dcfce7;
+        }
+
+        .orange-icon {
+            background: #fef3c7;
+        }
+
+        .red-icon {
+            background: #fee2e2;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .stat-number {
+            font-size: 29px;
+            font-weight: 800;
+            color: #172554;
+            margin-top: 7px;
+        }
+
+        .stat-description {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 7px;
+        }
+
+        /* ================= ACTION BUTTONS ================= */
+
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 32px 0 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .primary-button,
+        .export-button {
+            display: inline-block;
+            border: none;
+            padding: 12px 17px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .primary-button {
+            background: #2563eb;
+            color: white;
+        }
+
+        .primary-button:hover {
+            background: #1d4ed8;
+        }
+
+        .export-button {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .export-button:hover {
+            background: #bbf7d0;
+        }
+
+        /* ================= SEARCH AND FILTER ================= */
+
+        .filter-card {
+            background: white;
+            padding: 21px;
+            border-radius: 13px;
+            border: 1px solid #e8edf5;
+            margin-bottom: 22px;
+        }
+
+        .filter-card h3 {
+            margin: 0 0 16px;
+            color: #172554;
+            font-size: 16px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 12px;
+        }
+
+        .filter-grid input,
+        .filter-grid select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: white;
+            color: #334155;
+            outline: none;
+            min-width: 0;
+        }
+
+        .filter-grid input:focus,
+        .filter-grid select:focus {
+            border-color: #2563eb;
+        }
+
+        .filter-button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #172554;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .filter-button:hover {
+            background: #1e40af;
+        }
+
+        /* ================= TABLE ================= */
+
+        .table-card {
+            background: white;
+            border: 1px solid #e8edf5;
+            border-radius: 13px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(15,23,42,0.04);
+        }
+
+        .table-header {
+            padding: 21px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #e8edf5;
+        }
+
+        .table-header h2 {
+            color: #172554;
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .result-count {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1000px;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            background: #f8fafc;
+            color: #64748b;
+            text-align: left;
+            padding: 16px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 16px;
+            border-top: 1px solid #edf0f5;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        tbody tr:hover {
+            background: #f8fbff;
+        }
+
+        .product-id {
+            color: #2563eb;
+            font-weight: 700;
+        }
+
+        .product-name {
+            color: #172554;
+            font-weight: 600;
+        }
+
+        .price {
+            font-weight: 700;
+            color: #172554;
+        }
+
+        .quantity {
+            font-weight: 700;
+        }
+
+        /* Stock status */
+
+        .badge {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .in-stock {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .low-stock {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .out-of-stock {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .update-button {
+            display: inline-block;
+            padding: 7px 12px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .update-button:hover {
+            background: #bfdbfe;
+        }
+
+        .empty-message {
+            padding: 35px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        /* ================= FLASH MESSAGES ================= */
+
+        .flash-message {
+            padding: 13px 16px;
+            margin-bottom: 14px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 1100px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 750px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 18px;
+            }
+
+            .brand {
+                padding-bottom: 20px;
+            }
+
+            .menu {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .menu a {
+                margin: 0;
+            }
+
+            .sidebar-bottom {
+                margin-top: 15px;
+            }
+
+            .user-box {
+                margin-top: 15px;
+            }
+
+            .main-content {
+                padding: 22px 15px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome-banner {
+                padding: 22px;
+            }
+
+            .heading h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="brand">
+            ELECTRO<span>STORE</span>
+        </div>
+
+        <div class="menu-title">MAIN MENU</div>
+
+        <nav class="menu">
+
+            {% if can_dashboard %}
+            <a href="{{ url_for('dashboard') }}">
+                🏠 Dashboard
+            </a>
+            {% endif %}
+
+            <a href="{{ url_for('inventory') }}" class="active">
+                📦 Inventory
+            </a>
+
+            {% if can_dashboard %}
+            <a href="{{ url_for('availability_report') }}">
+                📊 Availability Report
+            </a>
+            {% endif %}
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="user-box">
+                <div>Logged in as</div>
+                <strong>{{ session.get('username') }}</strong>
+                <div>{{ session.get('role') }}</div>
+            </div>
+
+            <form method="POST" action="{{ url_for('logout') }}">
+                <button type="submit" class="logout-button">
+                    ↪ Log Out
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <header class="topbar">
+
+            <div class="heading">
+                <h1>Inventory Management</h1>
+                <p>Manage, track and monitor your electronics products.</p>
+            </div>
+
+            <div class="system-status">
+                ● System Active
+            </div>
+
+        </header>
+
+
+        <!-- WELCOME -->
+        <section class="welcome-banner">
+
+            <h2>Inventory Control Center 👋</h2>
+
+            <p>
+                Welcome back! Here's the current overview of your
+                electronics store inventory.
+            </p>
+
+        </section>
+
+
+        <!-- CALCULATE SUMMARY USING PRODUCTS -->
+        {% set ns = namespace(
+            total_products=0,
+            total_stock=0,
+            low_stock=0,
+            out_of_stock=0
+        ) %}
+
+        {% for product in products %}
+
+            {% set ns.total_products = ns.total_products + 1 %}
+            {% set ns.total_stock = ns.total_stock + (product['quantity']|int) %}
+
+            {% if product['quantity']|int == 0 %}
+
+                {% set ns.out_of_stock = ns.out_of_stock + 1 %}
+
+            {% elif product['quantity']|int <= product['reorder_level']|int %}
+
+                {% set ns.low_stock = ns.low_stock + 1 %}
+
+            {% endif %}
+
+        {% endfor %}
+
+
+        <!-- SUMMARY CARDS -->
+        <h2 class="section-title">Inventory Overview</h2>
+
+        <section class="stats-grid">
+
+            <article class="stat-card">
+
+                <div class="stat-icon blue-icon">📦</div>
+
+                <div class="stat-label">Total Products</div>
+
+                <div class="stat-number">
+                    {{ ns.total_products }}
+                </div>
+
+                <div class="stat-description">
+                    Registered products
+                </div>
+
+            </article>
+
+
+            <article class="stat-card">
+
+                <div class="stat-icon green-icon">📊</div>
+
+                <div class="stat-label">Total Stock</div>
+
+                <div class="stat-number">
+                    {{ ns.total_stock }}
+                </div>
+
+                <div class="stat-description">
+                    Total available units
+                </div>
+
+            </article>
+
+
+            <article class="stat-card">
+
+                <div class="stat-icon orange-icon">⚠️</div>
+
+                <div class="stat-label">Low Stock</div>
+
+                <div class="stat-number">
+                    {{ ns.low_stock }}
+                </div>
+
+                <div class="stat-description">
+                    Products needing attention
+                </div>
+
+            </article>
+
+
+            <article class="stat-card">
+
+                <div class="stat-icon red-icon">🚫</div>
+
+                <div class="stat-label">Out of Stock</div>
+
+                <div class="stat-number">
+                    {{ ns.out_of_stock }}
+                </div>
+
+                <div class="stat-description">
+                    Products with zero quantity
+                </div>
+
+            </article>
+
+        </section>
+
+
+        <!-- ACTION BUTTONS -->
+        <section class="action-row">
+
+            <h2 class="section-title" style="margin:0;">
+                Product Inventory
+            </h2>
+
+            <div class="action-buttons">
+
+                {% if can_add %}
+                <a href="{{ url_for('add_product') }}"
+                   class="primary-button">
+                    + Add New Product
+                </a>
+                {% endif %}
+
+                <button type="button"
+                        class="export-button"
+                        onclick="exportInventory()">
+                    ↓ Export CSV
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+
+            {% for category, message in messages %}
+
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+
+            {% endfor %}
+
+        {% endwith %}
+
+
+        <!-- SEARCH AND FILTER -->
+        <section class="filter-card">
+
+            <h3>🔍 Search & Filter Products</h3>
+
+            <form method="GET" action="{{ url_for('inventory') }}">
+
+                <div class="filter-grid">
+
+                    <input
+                        type="text"
+                        name="search"
+                        id="productSearch"
+                        placeholder="Search product ID, name or category..."
+                        value="{{ search }}"
+                    >
+
+                    <select name="search_by">
+
+                        <option value="product_id"
+                            {% if search_by == 'product_id' %}selected{% endif %}>
+                            Product ID
+                        </option>
+
+                        <option value="product_name"
+                            {% if search_by == 'product_name' %}selected{% endif %}>
+                            Product Name
+                        </option>
+
+                        <option value="category"
+                            {% if search_by == 'category' %}selected{% endif %}>
+                            Category
+                        </option>
+
+                    </select>
+
+                    <button type="submit" class="filter-button">
+                        Search
+                    </button>
+
+                    <a href="{{ url_for('inventory') }}"
+                       class="clear-button">
+                        Clear
+                    </a>
+
+                </div>
+
+            </form>
+
+            <div class="filter-grid" style="margin-top:14px;">
+
+                <select id="categoryFilter"
+                        onchange="filterInventory()">
+
+                    <option value="all">All Categories</option>
+
+                    {% for product in products|unique(attribute='category') %}
+
+                    <option value="{{ product['category']|lower }}">
+                        {{ product['category'] }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+
+                <select id="stockFilter"
+                        onchange="filterInventory()">
+
+                    <option value="all">All Availability</option>
+                    <option value="in-stock">In Stock</option>
+                    <option value="low-stock">Low Stock</option>
+                    <option value="out-of-stock">Out of Stock</option>
+
+                </select>
+
+
+                <select id="sortFilter"
+                        onchange="sortInventory()">
+
+                    <option value="default">Sort Products</option>
+                    <option value="name-asc">Name: A to Z</option>
+                    <option value="name-desc">Name: Z to A</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="quantity-asc">Quantity: Low to High</option>
+                    <option value="quantity-desc">Quantity: High to Low</option>
+
+                </select>
+
+            </div>
+
+        </section>
+
+
+        <!-- INVENTORY TABLE -->
+        <section class="table-card">
+
+            <div class="table-header">
+
+                <h2>📦 All Products</h2>
+
+                <span class="result-count" id="resultCount">
+                    {{ products|length }} products displayed
+                </span>
+
+            </div>
+
+
+            <div class="table-wrap">
+
+                <table id="inventoryTable">
+
+                    <thead>
+
+                        <tr>
+                            <th>Product ID</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Reorder Level</th>
+                            <th>Location</th>
+                            <th>Availability</th>
+
+                            {% if can_update %}
+                            <th>Action</th>
+                            {% endif %}
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="inventoryBody">
+
+                        {% for product in products %}
+
+                        <tr
+                            data-category="{{ product['category']|lower }}"
+                            data-name="{{ product['product_name']|lower }}"
+                            data-price="{{ product['price'] }}"
+                            data-quantity="{{ product['quantity'] }}"
+                            data-status="{% if product['quantity']|int == 0 %}out-of-stock{% elif product['quantity']|int <= product['reorder_level']|int %}low-stock{% else %}in-stock{% endif %}"
+                        >
+
+                            <td class="product-id">
+                                {{ product['product_id'] }}
+                            </td>
+
+                            <td class="product-name">
+                                {{ product['product_name'] }}
+                            </td>
+
+                            <td>
+                                {{ product['category'] }}
+                            </td>
+
+                            <td class="price">
+                                ₹{{ "%.2f"|format(product['price']|float) }}
+                            </td>
+
+                            <td class="quantity">
+                                {{ product['quantity'] }}
+                            </td>
+
+                            <td>
+                                {{ product['reorder_level'] }}
+                            </td>
+
+                            <td>
+                                {{ product['location'] or '-' }}
+                            </td>
+
+
+                            <td>
+
+                                {% if product['quantity']|int == 0 %}
+
+                                    <span class="badge out-of-stock">
+                                        Out of Stock
+                                    </span>
+
+                                {% elif product['quantity']|int <= product['reorder_level']|int %}
+
+                                    <span class="badge low-stock">
+                                        Low Stock
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge in-stock">
+                                        In Stock
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            {% if can_update %}
+
+                            <td>
+
+                                <a
+                                    href="{{ url_for('update_product', product_id=product['product_id']) }}"
+                                    class="update-button">
+                                    ✏️ Update
+                                </a>
+
+                            </td>
+
+                            {% endif %}
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="9" class="empty-message">
+                                No products found in your inventory.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- ================= JAVASCRIPT ================= -->
+
+<script>
+
+    // CATEGORY AND AVAILABILITY FILTER
+
+    function filterInventory() {
+
+        const category =
+            document.getElementById("categoryFilter").value;
+
+        const status =
+            document.getElementById("stockFilter").value;
+
+        const rows =
+            document.querySelectorAll("#inventoryBody tr[data-category]");
+
+        let visible = 0;
+
+        rows.forEach(row => {
+
+            const rowCategory = row.dataset.category;
+            const rowStatus = row.dataset.status;
+
+            const categoryMatch =
+                category === "all" || rowCategory === category;
+
+            const statusMatch =
+                status === "all" || rowStatus === status;
+
+            const show = categoryMatch && statusMatch;
+
+            row.style.display = show ? "" : "none";
+
+            if (show) {
+                visible++;
+            }
+
+        });
+
+        updateCount(visible);
+
+    }
+
+
+    // SORT PRODUCTS
+
+    function sortInventory() {
+
+        const sortValue =
+            document.getElementById("sortFilter").value;
+
+        const tbody =
+            document.getElementById("inventoryBody");
+
+        const rows =
+            Array.from(tbody.querySelectorAll("tr[data-category]"));
+
+        rows.sort((a, b) => {
+
+            const nameA = a.dataset.name;
+            const nameB = b.dataset.name;
+
+            const priceA = Number(a.dataset.price);
+            const priceB = Number(b.dataset.price);
+
+            const quantityA = Number(a.dataset.quantity);
+            const quantityB = Number(b.dataset.quantity);
+
+            switch (sortValue) {
+
+                case "name-asc":
+                    return nameA.localeCompare(nameB);
+
+                case "name-desc":
+                    return nameB.localeCompare(nameA);
+
+                case "price-asc":
+                    return priceA - priceB;
+
+                case "price-desc":
+                    return priceB - priceA;
+
+                case "quantity-asc":
+                    return quantityA - quantityB;
+
+                case "quantity-desc":
+                    return quantityB - quantityA;
+
+                default:
+                    return 0;
+
+            }
+
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+
+        filterInventory();
+
+    }
+
+
+    // UPDATE RESULT COUNT
+
+    function updateCount(count) {
+
+        document.getElementById("resultCount").textContent =
+            count + " products displayed";
+
+    }
+
+
+    // EXPORT INVENTORY TO CSV
+
+    function exportInventory() {
+
+        const table =
+            document.getElementById("inventoryTable");
+
+        const rows =
+            Array.from(table.querySelectorAll("tr"));
+
+        const csv = rows.map(row => {
+
+            return Array.from(row.querySelectorAll("th, td"))
+                .filter(cell => !cell.classList.contains("empty-message"))
+                .map(cell => {
+
+                    let value = cell.innerText.trim();
+
+                    value = value.replace(/"/g, '""');
+
+                    return '"' + value + '"';
+
+                })
+                .join(",");
+
+        }).filter(row => row.length > 0).join("\n");
+
+        const blob = new Blob(
+            ["\uFEFF" + csv],
+            { type: "text/csv;charset=utf-8;" }
+        );
+
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "ESIMS_Inventory_Report.csv";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+
+    }
+
+</script>
+
+</body>
+</html>
