@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿```html
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -22,7 +23,6 @@
             justify-content: center;
             padding: 24px;
             font-family: "Segoe UI", Arial, sans-serif;
-
             background:
                 radial-gradient(circle at 15% 20%, #4338ca 0, transparent 35%),
                 radial-gradient(circle at 85% 80%, #7c3aed 0, transparent 35%),
@@ -30,177 +30,148 @@
         }
 
         .login-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             width: 100%;
             max-width: 950px;
             min-height: 540px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             overflow: hidden;
-            background: #ffffff;
+            background: white;
             border-radius: 24px;
-            box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.3);
         }
 
-        .login-banner {
+        .login-info {
+            padding: 55px 40px;
+            background: linear-gradient(145deg, #1d4ed8, #312e81);
+            color: white;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 48px;
-            color: #ffffff;
-            background: linear-gradient(145deg, #3730a3, #4f46e5 55%, #8b5cf6);
         }
 
-        .brand-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 66px;
-            height: 66px;
-            margin-bottom: 28px;
-            background: rgba(255, 255, 255, 0.17);
-            border: 1px solid rgba(255, 255, 255, 0.28);
-            border-radius: 18px;
-            font-size: 32px;
-        }
-
-        .login-banner h1 {
-            margin: 0 0 18px;
-            color: #ffffff;
+        .login-info h1 {
             font-size: 34px;
-            line-height: 1.25;
+            margin-bottom: 15px;
         }
 
-        .login-banner p {
-            color: #e0e7ff;
-            font-size: 15px;
-            line-height: 1.8;
+        .login-info p {
+            color: #dbeafe;
+            line-height: 1.7;
         }
 
-        .feature-list {
-            margin-top: 28px;
-            padding: 0;
-            list-style: none;
-        }
-
-        .feature-list li {
-            margin: 15px 0;
-            color: #f5f3ff;
-            font-size: 14px;
-        }
-
-        .login-panel {
+        .login-form-section {
+            padding: 55px 45px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 48px;
         }
 
-        .login-panel h2 {
-            margin: 0 0 8px;
+        .login-form-section h2 {
             color: #172554;
-            font-size: 29px;
+            font-size: 28px;
+            margin-bottom: 8px;
         }
 
-        .login-subtitle {
-            margin: 0 0 28px;
-            color: #75809a;
-            font-size: 14px;
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
         }
 
-        .login-panel label {
+        label {
             display: block;
-            margin: 18px 0 7px;
-            color: #34405f;
-            font-size: 14px;
-            font-weight: 650;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #334155;
         }
 
-        .login-panel input[type="text"],
-        .login-panel input[type="email"],
-        .login-panel input[type="password"] {
-            display: block;
+        input {
             width: 100%;
-            padding: 13px 14px;
-            color: #18213b;
-            background: #f9faff;
-            border: 1px solid #dce2f0;
-            border-radius: 10px;
-            font: inherit;
-            outline: none;
-            transition: 0.2s ease;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
 
-        .login-panel input:focus {
-            background: #ffffff;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 75px;
+        }
+
+        #pwToggle {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            padding: 5px 9px;
+            background: transparent;
+            border: none;
+            color: #2563eb;
+            font-weight: 600;
+            cursor: pointer;
         }
 
         .login-submit {
             width: 100%;
-            margin-top: 26px;
             padding: 14px;
-            color: #ffffff;
-            background: linear-gradient(100deg, #4f46e5, #7c3aed);
             border: none;
-            border-radius: 10px;
+            border-radius: 9px;
+            background: #2563eb;
+            color: white;
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.22);
-            transition: 0.2s ease;
         }
 
         .login-submit:hover {
-            background: linear-gradient(100deg, #3730a3, #6d28d9);
-            transform: translateY(-2px);
+            background: #1d4ed8;
         }
 
-        .login-error {
-            margin: 14px 0;
+        .error-message {
             padding: 12px;
-            color: #b91c1c;
-            background: #fff0f0;
-            border: 1px solid #fecaca;
-            border-radius: 9px;
-            font-size: 14px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 13px;
+        }
+
+        .success-message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 13px;
         }
 
         .login-footer {
-            margin-top: 24px;
-            color: #929bb0;
-            font-size: 12px;
+            margin-top: 30px;
             text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
         }
 
-        @media (max-width: 700px) {
-            body {
-                padding: 14px;
-            }
-
+        @media(max-width: 700px) {
             .login-layout {
                 grid-template-columns: 1fr;
-                max-width: 440px;
             }
 
-            .login-banner {
-                padding: 28px;
-            }
-
-            .login-banner h1 {
-                font-size: 27px;
-            }
-
-            .feature-list {
-                display: none;
-            }
-
-            .brand-icon {
-                margin-bottom: 16px;
-            }
-
-            .login-panel {
+            .login-info {
                 padding: 30px;
+            }
+
+            .login-form-section {
+                padding: 35px 25px;
             }
         }
     </style>
@@ -208,52 +179,62 @@
 
 <body>
 
-    <main class="login-layout">
+<main class="login-layout">
 
-        <section class="login-banner">
+    <section class="login-info">
 
-            <div class="brand-icon">📦</div>
+        <h1>ESIMS</h1>
 
-            <h1>Electronics Store<br>Inventory System</h1>
+        <h2>Electronics Store Inventory Management System</h2>
 
-            <p>
-                Manage your inventory with clarity.
-                Monitor products, track stock levels, and
-                keep your store organised in one place.
-            </p>
+        <p>
+            Manage products, monitor stock availability,
+            update inventory and maintain your store efficiently.
+        </p>
 
-            <ul class="feature-list">
-                <li>✓ &nbsp; Inventory overview</li>
-                <li>✓ &nbsp; Stock-level monitoring</li>
-                <li>✓ &nbsp; Simple inventory management</li>
-            </ul>
+    </section>
 
-        </section>
+    <section class="login-form-section">
 
-        <section class="login-panel">
+        <h2>Welcome Back!</h2>
 
-            <h2>Welcome back!</h2>
+        <p class="subtitle">
+            Sign in to access your inventory dashboard.
+        </p>
 
-            <p class="login-subtitle">
-                Sign in to access your inventory dashboard.
-            </p>
+        {% if error %}
+        <div class="error-message" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
 
-            <form method="POST"
-                  action="{{ url_for('login', next=request.args.get('next', '')) }}">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="success-message" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-                <label for="username">Username or email</label>
+        <form method="POST" action="{{ url_for('login', next=request.args.get('next', '')) }}">
 
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    placeholder="Enter your username or email"
-                    autocomplete="username"
-                    maxlength="254"
-                    required
-                >
+            <label for="username">Username or email</label>
 
-                <label for="password">Password</label>
+            <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Enter your username or email"
+                autocomplete="username"
+                maxlength="254"
+                required
+            >
+
+            <label for="password">Password</label>
+
+            <div class="password-wrapper">
 
                 <input
                     type="password"
@@ -264,25 +245,52 @@
                     required
                 >
 
-                {% if error %}
-                    <div class="login-error" role="alert">
-                        {{ error }}
-                    </div>
-                {% endif %}
-
-                <button type="submit" class="login-submit">
-                    Sign In
+                <button
+                    type="button"
+                    id="pwToggle"
+                    aria-label="Show password"
+                    aria-pressed="false"
+                >
+                    Show
                 </button>
 
-            </form>
-
-            <div class="login-footer">
-                Electronics Store Inventory Management System
             </div>
 
-        </section>
+            <button type="submit" class="login-submit">
+                Sign In
+            </button>
 
-    </main>
+        </form>
+
+        <div class="login-footer">
+            Electronics Store Inventory Management System
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+    const passwordInput = document.getElementById("password");
+    const passwordToggle = document.getElementById("pwToggle");
+
+    passwordToggle.addEventListener("click", function () {
+
+        const isPassword = passwordInput.type === "password";
+
+        passwordInput.type = isPassword ? "text" : "password";
+
+        passwordToggle.textContent = isPassword ? "Hide" : "Show";
+
+        passwordToggle.setAttribute("aria-pressed", String(isPassword));
+
+        passwordToggle.setAttribute(
+            "aria-label",
+            isPassword ? "Hide password" : "Show password"
+        );
+
+    });
+</script>
 
 </body>
 </html>

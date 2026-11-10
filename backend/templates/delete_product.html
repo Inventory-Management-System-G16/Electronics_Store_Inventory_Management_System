@@ -1,52 +1,247 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ESIMS | Delete Product</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='sr-ui.css') }}">
-</head>
-<body class="ui-page">
+"""ESIMS-13: Delete Product (FR-INV-05 confirmation, FR-INV-06 authorization)."""
 
-{% set active = 'inventory' %}
-{% include "_topbar.html" %}
+import sqlite3
+import pytest
 
-<main class="page">
 
-    <div class="page-head">
-        <div>
-            <h1>Delete product</h1>
-            <p>Please confirm before removing this product.</p>
-        </div>
-    </div>
+@pytest.fixture()
+def product(db_path):
+    conn = sqlite3.connect(db_path)
 
-    <section class="panel form-card">
+    conn.execute(
+        """
+        INSERT INTO products
+        VALUES ('P100', 'HDMI Cable', 'Cables', 299.5, 20, 5, 'A1')
+        """
+    )
 
-        <p>
-            Are you sure you want to permanently delete
-            <strong>{{ product.product_name }}</strong>?
-            This cannot be undone.
-        </p>
+    conn.commit()
+    conn.close()
 
-        <div class="confirm-box">
-            <dl>
-                <dt>Product ID</dt><dd>{{ product.product_id }}</dd>
-                <dt>Name</dt><dd>{{ product.product_name }}</dd>
-                <dt>Category</dt><dd>{{ product.category }}</dd>
-                <dt>Quantity in stock</dt><dd>{{ product.quantity }}</dd>
-            </dl>
-        </div>
 
-        <form method="post"
-              action="{{ url_for('delete_product', product_id=product.product_id) }}">
-            <div class="form-actions">
-                <button class="btn btn-danger" type="submit">Yes, delete product</button>
-                <a class="btn btn-ghost" href="{{ url_for('inventory') }}">Cancel</a>
-            </div>
-        </form>
+def count(db_path):
+    conn = sqlite3.connect(db_path)
 
-    </section>
-</main>
-</body>
-</html>
+    total = conn.execute(
+        "SELECT COUNT(*) FROM products"
+    ).fetchone()[0]
+
+    conn.close()
+    return total
+
+
+# ------------------------------------------------------------
+# AUTHORIZATION TESTS
+# ------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "username",
+    ["employee", "management"]
+)
+def test_unauthorized_roles_cannot_open_or_submit_delete(
+    client, login_as, product, db_path, username
+):
+    login_as(username)
+
+    assert client.get("/delete-product/P100").status_code == 403
+    assert client.post("/delete-product/P100").status_code == 403
+
+    assert count(db_path) == 1
+
+
+def test_anonymous_cannot_delete(client, product, db_path):
+    response = client.post("/delete-product/P100")
+
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+    assert count(db_path) == 1
+
+
+@pytest.mark.parametrize(
+    "username",
+    ["admin", "manager"]
+)
+def test_authorized_roles_can_open_confirmation(
+    client, login_as, product, username
+):
+    login_as(username)
+
+    assert client.get("/delete-product/P100").status_code == 200
+
+
+# ------------------------------------------------------------
+# CONFIRMATION TESTS
+# ------------------------------------------------------------
+
+def test_confirmation_page_shows_product_and_deletes_nothing(
+    client, login_as, product, db_path
+):
+    login_as("manager")
+
+    html = client.get("/delete-product/P100").data
+
+    assert b"HDMI Cable" in html
+    assert b"Yes, delete product" in html
+
+    assert count(db_path) == 1
+
+
+def test_get_never_deletes(client, login_as, product, db_path):
+    login_as("admin")
+
+    client.get("/delete-product/P100")
+
+    assert count(db_path) == 1
+
+
+# ------------------------------------------------------------
+# DELETE BEHAVIOUR TESTS
+# ------------------------------------------------------------
+
+def test_confirmed_delete_removes_product_and_shows_message(
+    client, login_as, product, db_path
+):
+    login_as("manager")
+
+    response = client.post(
+        "/delete-product/P100",
+        follow_redirects=True
+    )
+
+    assert response.status_code == 200
+    assert b"Product P100 was deleted." in response.data
+
+    assert count(db_path) == 0
+    assert b"HDMI Cable" not in response.data
+
+
+def test_only_the_chosen_product_is_deleted(
+    client, login_as, product, db_path
+):
+    conn = sqlite3.connect(db_path)
+
+    conn.execute(
+        """
+        INSERT INTO products
+        VALUES ('P200', 'Mouse', 'Accessories', 10, 3, 1, NULL)
+        """
+    )
+
+    conn.commit()
+    conn.close()
+
+    login_as("admin")
+
+    client.post("/delete-product/P100")
+
+    conn = sqlite3.connect(db_path)
+
+    ids = [
+        row[0]
+        for row in conn.execute(
+            "SELECT product_id FROM products"
+        )
+    ]
+
+    conn.close()
+
+    assert ids == ["P200"]
+
+
+def test_unknown_product_is_404(client, login_as):
+    login_as("manager")
+
+    assert client.get("/delete-product/NOPE").status_code == 404
+    assert client.post("/delete-product/NOPE").status_code == 404
+
+
+def test_deleted_product_id_can_be_added_again(
+    client, login_as, product
+):
+    login_as("manager")
+
+    client.post("/delete-product/P100")
+
+    response = client.post(
+        "/add-product",
+        data={
+            "product_id": "P100",
+            "product_name": "New",
+            "category": "Cables",
+            "price": "1",
+            "quantity": "1",
+            "reorder_level": "1",
+            "location": ""
+        }
+    )
+
+    assert response.status_code == 302
+
+
+# ------------------------------------------------------------
+# DELETE BUTTON VISIBILITY TESTS
+# ------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "username,visible",
+    [
+        ("admin", True),
+        ("manager", True),
+        ("employee", False),
+        ("management", False)
+    ]
+)
+def test_delete_button_visibility(
+    client, login_as, product, username, visible
+):
+    login_as(username)
+
+    response = client.get("/inventory")
+    html = response.data
+
+    print("\n========== DELETE BUTTON DIAGNOSTIC ==========")
+    print("USER:", username)
+    print("STATUS:", response.status_code)
+    print("P100 FOUND:", b"P100" in html)
+    print("HDMI FOUND:", b"HDMI Cable" in html)
+    print("EMPTY MESSAGE:", b"No products found" in html)
+    print("DELETE LINK:", b"/delete-product/P100" in html)
+    print("==============================================\n")
+
+    assert (b"/delete-product/P100" in html) is visible
+
+
+# ------------------------------------------------------------
+# SAFE ERROR MESSAGE TEST
+# ------------------------------------------------------------
+
+def test_delete_failure_shows_safe_message(
+    client, login_as, product, monkeypatch
+):
+    import app as app_module
+
+    real = app_module.execute
+
+    def broken(sql, params=(), **kwargs):
+
+        if sql.strip().upper().startswith("DELETE"):
+            raise RuntimeError("secret database detail")
+
+        return real(sql, params, **kwargs)
+
+    monkeypatch.setattr(
+        app_module,
+        "execute",
+        broken
+    )
+
+    login_as("manager")
+
+    response = client.post(
+        "/delete-product/P100",
+        follow_redirects=True
+    )
+
+    assert b"Could not delete the product" in response.data
+    assert b"secret database detail" not in response.data

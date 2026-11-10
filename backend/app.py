@@ -34,7 +34,6 @@ ROLES = {
 }
 
 # Who may do what (matches the role table in README.md).
-# Routes and templates both use these constants.
 ADD_ROLES = ("admin", "store_manager")
 UPDATE_ROLES = ("admin", "store_manager", "store_employee")
 DASHBOARD_ROLES = ("admin", "store_manager", "management")
@@ -116,6 +115,17 @@ def execute(sql, params=(), *, fetchone=False, fetchall=False,
 # AUTHENTICATION AND PERMISSIONS
 # ============================================================
 
+def normalize_role(role):
+    """Convert alternate role names to the application's role names."""
+
+    role_aliases = {
+        "manager": "store_manager",
+        "employee": "store_employee",
+    }
+
+    return role_aliases.get(role, role)
+
+
 def login_required(view):
     """Require an authenticated user."""
 
@@ -133,6 +143,8 @@ def login_required(view):
 def roles_required(*roles):
     """Restrict a route to specified user roles."""
 
+    allowed_roles = tuple(normalize_role(role) for role in roles)
+
     def decorator(view):
         @wraps(view)
         def wrapped(*args, **kwargs):
@@ -142,7 +154,9 @@ def roles_required(*roles):
 
                 return redirect(url_for("login", next=request.path))
 
-            if session.get("role") not in roles:
+            user_role = normalize_role(session.get("role"))
+
+            if user_role not in allowed_roles:
                 abort(403)
 
             return view(*args, **kwargs)
@@ -185,7 +199,8 @@ def create_app(test_config=None):
 
     @app.context_processor
     def inject_permissions():
-        role = session.get("role")
+        role = normalize_role(session.get("role"))
+
         return {
             "can_add": role in ADD_ROLES,
             "can_update": role in UPDATE_ROLES,
@@ -442,8 +457,7 @@ def create_app(test_config=None):
                 error="Please correct the highlighted fields.",
             ), 400
 
-        # ESIMS-17: product IDs are unique regardless of upper/lower case
-        # (MySQL already compares them case-insensitively).
+        # Product IDs are unique regardless of upper/lower case.
         existing = execute(
             """
             SELECT product_id
@@ -484,8 +498,6 @@ def create_app(test_config=None):
             )
 
         except Exception as exc:
-            # The database primary key is the final guard against
-            # duplicate IDs submitted at the same time.
             if is_duplicate_key_error(exc):
                 return render_template(
                     "add_product.html",
@@ -549,7 +561,6 @@ def create_app(test_config=None):
             abort(404)
 
         try:
-
             execute(
                 "DELETE FROM products WHERE product_id = %s",
                 (product_id,),
@@ -557,7 +568,6 @@ def create_app(test_config=None):
             )
 
         except Exception:
-
             app.logger.exception("Database error while deleting product")
 
             flash(
@@ -678,11 +688,7 @@ def is_duplicate_key_error(error):
 
 
 def validate_product_fields(values, new_product=False):
-    """Validate every field and return {field: message} (empty if valid).
-
-    ESIMS-18 (numeric) and ESIMS-19 (mandatory fields): each problem is
-    reported next to its own field instead of one generic message.
-    """
+    """Validate every field and return {field: message} (empty if valid)."""
 
     errors = {}
 
@@ -695,13 +701,12 @@ def validate_product_fields(values, new_product=False):
         "reorder_level": "Reorder level",
     }
 
-    # ESIMS-19: mandatory fields
+    # Mandatory fields
     for field, label in labels.items():
-
         if not values.get(field):
             errors[field] = f"{label} is required."
 
-    # product ID format (only for new products)
+    # Product ID format
     if (
         "product_id" not in errors
         and new_product
@@ -712,7 +717,7 @@ def validate_product_fields(values, new_product=False):
             "'-' and '_'."
         )
 
-    # maximum lengths
+    # Maximum lengths
     limits = {
         "product_id": 30,
         "product_name": 100,
@@ -721,14 +726,12 @@ def validate_product_fields(values, new_product=False):
     }
 
     for field, maximum in limits.items():
-
         if field not in errors and len(values.get(field, "")) > maximum:
             label = labels.get(field, "Location")
             errors[field] = f"{label} must be at most {maximum} characters."
 
-    # ESIMS-18: numeric fields
+    # Numeric validation: price
     if "price" not in errors:
-
         try:
             price = Decimal(values["price"])
         except (ValueError, ArithmeticError):
@@ -743,8 +746,8 @@ def validate_product_fields(values, new_product=False):
             elif price > Decimal("99999999.99"):
                 errors["price"] = "Price is too large."
 
+    # Numeric validation: quantity and reorder level
     for field in ("quantity", "reorder_level"):
-
         if field in errors:
             continue
 
@@ -765,11 +768,8 @@ def validate_product_fields(values, new_product=False):
 
 
 def validate_product(values, new_product=False):
-    """Return a validation message, or None when the product is valid.
+    """Return a validation message, or None when the product is valid."""
 
-    For new products, restrict IDs to letters, numbers, hyphens, and
-    underscores so they can safely be used in update-product URLs.
-    """
     required = (
         "product_id",
         "product_name",
@@ -783,7 +783,6 @@ def validate_product(values, new_product=False):
         return "Please fill in all required fields."
 
     if new_product and not PRODUCT_ID_PATTERN.match(values["product_id"]):
-
         return "Product ID may contain only letters, numbers, '-' and '_'."
 
     limits = {
@@ -838,5 +837,3 @@ if __name__ == "__main__":
         port=5000,
         debug=os.environ.get("FLASK_DEBUG", "0") == "1",
     )
-
-
