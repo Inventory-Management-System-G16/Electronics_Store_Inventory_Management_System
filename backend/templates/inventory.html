@@ -1,117 +1,601 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESIMS | Inventory</title>
+    <title>ESIMS | Inventory Management</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='sr-ui.css') }}">
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f3f6fc;
+            color: #1e293b;
+        }
+
+        a { text-decoration: none; }
+
+        .layout { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 255px;
+            background: #172554;
+            color: white;
+            padding: 28px 18px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 800;
+            padding: 0 12px 38px;
+        }
+
+        .brand span { color: #60a5fa; }
+
+        .menu-title {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 0 12px;
+            margin-bottom: 15px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 14px;
+            margin-bottom: 8px;
+            color: #dbeafe;
+            border-radius: 9px;
+            font-size: 14px;
+        }
+
+        .menu a:hover, .menu a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .sidebar-bottom { margin-top: auto; }
+
+        .user-box {
+            padding: 15px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            margin-top: 35px;
+            font-size: 13px;
+            color: #dbeafe;
+            overflow-wrap: anywhere;
+        }
+
+        .user-box strong { color: white; }
+
+        .logout-button {
+            margin-top: 14px;
+            width: 100%;
+            padding: 12px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 32px 38px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 28px;
+        }
+
+        .heading h1 {
+            margin: 0 0 7px;
+            font-size: 29px;
+            color: #172554;
+        }
+
+        .heading p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .system-status {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 9px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(120deg, #1d4ed8, #6366f1);
+            color: white;
+            padding: 26px 30px;
+            border-radius: 15px;
+            margin-bottom: 28px;
+        }
+
+        .welcome-banner h2 { margin: 0 0 9px; }
+        .welcome-banner p { margin: 0; color: #dbeafe; }
+
+        .flash-container { margin-bottom: 20px; }
+
+        .flash-message {
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .flash-message.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .flash-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .inventory-section {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            color: #172554;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            padding: 11px 13px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            outline: none;
+        }
+
+        .button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: 600;
+            color: white;
+            background: #2563eb;
+        }
+
+        .button:hover { opacity: 0.9; }
+
+        .add-button { background: #16a34a; }
+        .export-button { background: #475569; }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th {
+            background: #eff6ff;
+            color: #1e3a8a;
+            padding: 14px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        tbody tr:hover { background: #f8fafc; }
+
+        .badge {
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .in-stock { background: #dcfce7; color: #166534; }
+        .low-stock { background: #fef3c7; color: #92400e; }
+        .out-of-stock { background: #fee2e2; color: #991b1b; }
+
+        .action-cell {
+            white-space: nowrap;
+        }
+
+        .update-button {
+            display: inline-block;
+            padding: 8px 11px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            margin: 2px;
+        }
+
+        .delete-button {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+
+        @media(max-width: 800px) {
+            .sidebar { width: 190px; }
+            .main-content { padding: 20px; }
+        }
+
+        @media(max-width: 600px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .main-content { padding: 15px; }
+        }
+    </style>
 </head>
 
-<body class="ui-page">
+<body>
 
-{% set active = 'inventory' %}
-{% include "_topbar.html" %}
+<div class="layout">
 
-<main class="page">
+    <aside class="sidebar">
 
-    <div class="page-head">
-        <div>
-            <h1>Inventory</h1>
-            <p>{{ products|length }} product{{ '' if products|length == 1 else 's' }} shown</p>
+        <div class="brand">ESIMS <span>●</span></div>
+
+        <div class="menu-title">MAIN MENU</div>
+
+        <nav class="menu">
+            <a href="{{ url_for('inventory') }}" class="active">
+                📦 Inventory
+            </a>
+
+            {% if can_dashboard %}
+            <a href="{{ url_for('dashboard') }}">
+                📊 Dashboard
+            </a>
+            {% endif %}
+
+            {% if can_add %}
+            <a href="{{ url_for('add_product') }}">
+                ➕ Add Product
+            </a>
+            {% endif %}
+
+            {% if can_dashboard %}
+            <a href="{{ url_for('availability_report') }}">
+                📈 Availability Report
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="user-box">
+                Logged in as:<br>
+                <strong>{{ session.get('username', 'User') }}</strong><br>
+                Role: {{ session.get('role', 'User') }}
+            </div>
+
+            <form action="{{ url_for('logout') }}" method="POST">
+                <button type="submit" class="logout-button">
+                    Logout
+                </button>
+            </form>
+
         </div>
 
-        {% if can_add %}
-            <a class="btn" href="{{ url_for('add_product') }}">+ Add product</a>
-        {% endif %}
-    </div>
+    </aside>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for category, message in messages %}
-            <p class="notice {{ category }}" role="status">{{ message }}</p>
-        {% endfor %}
-    {% endwith %}
+    <main class="main-content">
 
-    <section class="panel">
+        <div class="topbar">
+            <div class="heading">
+                <h1>Inventory Management</h1>
+                <p>Manage and monitor your electronics inventory.</p>
+            </div>
 
-        <form method="get" action="{{ url_for('inventory') }}" class="toolbar">
-            <input type="text" name="search" placeholder="Search inventory..."
-                   value="{{ search }}" aria-label="Search text">
+            <div class="system-status">● System Online</div>
+        </div>
 
-            <select name="search_by" aria-label="Search by">
-                <option value="product_id" {% if search_by == 'product_id' %}selected{% endif %}>Product ID</option>
-                <option value="product_name" {% if search_by == 'product_name' %}selected{% endif %}>Product Name</option>
-                <option value="category" {% if search_by == 'category' %}selected{% endif %}>Category</option>
-            </select>
+        <div class="welcome-banner">
+            <h2>Welcome to ESIMS</h2>
+            <p>Track products, monitor stock availability and manage inventory.</p>
+        </div>
 
-            <button class="btn" type="submit">Search</button>
-            <a class="btn btn-ghost" href="{{ url_for('inventory') }}">Clear</a>
-        </form>
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                <div class="flash-message {{ category }}" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
 
-        <div class="table-scroll">
-            <table class="inv-table">
-                <thead>
-                    <tr>
-                        <th>Product ID</th>
-                        <th>Product Name</th>
-                        <th>Category</th>
-                        <th class="num">Price</th>
-                        <th class="num">Quantity</th>
-                        <th class="num">Reorder Level</th>
-                        <th>Location</th>
-                        <th>Availability</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
+        <section class="inventory-section">
 
-                <tbody>
-                    {% for product in products %}
+            <div class="section-heading">
+                <h2>Product Inventory</h2>
+
+                {% if can_add %}
+                <a href="{{ url_for('add_product') }}" class="button add-button">
+                    + Add Product
+                </a>
+                {% endif %}
+            </div>
+
+            <form method="GET" action="{{ url_for('inventory') }}" class="toolbar">
+
+                <select name="search_by">
+                    <option value="product_id" {% if search_by == 'product_id' %}selected{% endif %}>Product ID</option>
+                    <option value="product_name" {% if search_by == 'product_name' %}selected{% endif %}>Product Name</option>
+                    <option value="category" {% if search_by == 'category' %}selected{% endif %}>Category</option>
+                </select>
+
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search inventory..."
+                    value="{{ search }}"
+                >
+
+                <button type="submit" class="button">Search</button>
+
+                <a href="{{ url_for('inventory') }}" class="button export-button">
+                    Reset
+                </a>
+
+                <button type="button" class="button export-button" onclick="exportInventory()">
+                    Export CSV
+                </button>
+
+            </form>
+
+            <div class="toolbar">
+
+                <select id="categoryFilter" onchange="filterInventory()">
+                    <option value="all">All Categories</option>
+
+                    {% for product in products|unique(attribute='category') %}
+                    <option value="{{ product['category']|lower }}">
+                        {{ product['category'] }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <select id="statusFilter" onchange="filterInventory()">
+                    <option value="all">All Availability</option>
+                    <option value="in-stock">In Stock</option>
+                    <option value="low-stock">Low Stock</option>
+                    <option value="out-of-stock">Out of Stock</option>
+                </select>
+
+            </div>
+
+            <div class="table-wrap">
+
+                <table id="inventoryTable">
+
+                    <thead>
                         <tr>
-                            <td class="id">{{ product['product_id'] }}</td>
-                            <td>{{ product['product_name'] }}</td>
+                            <th>Product ID</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Reorder Level</th>
+                            <th>Location</th>
+                            <th>Availability</th>
+
+                            {% if can_update or can_delete %}
+                            <th>Action</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+
+                    <tbody id="inventoryBody">
+
+                        {% for product in products %}
+
+                        <tr
+                            data-category="{{ product['category']|lower }}"
+                            data-name="{{ product['product_name']|lower }}"
+                            data-price="{{ product['price'] }}"
+                            data-quantity="{{ product['quantity'] }}"
+                            data-status="{% if product['quantity']|int == 0 %}out-of-stock{% elif product['quantity']|int <= product['reorder_level']|int %}low-stock{% else %}in-stock{% endif %}"
+                        >
+
+                            <td class="product-id">{{ product['product_id'] }}</td>
+                            <td class="product-name">{{ product['product_name'] }}</td>
                             <td>{{ product['category'] }}</td>
-                            <td class="num">₹{{ "%.2f"|format(product['price']) }}</td>
-                            <td class="num">{{ product['quantity'] }}</td>
-                            <td class="num">{{ product['reorder_level'] }}</td>
+                            <td class="price">₹{{ "%.2f"|format(product['price']|float) }}</td>
+                            <td class="quantity">{{ product['quantity'] }}</td>
+                            <td>{{ product['reorder_level'] }}</td>
                             <td>{{ product['location'] or '-' }}</td>
 
-                            <td class="status">
-                                {% if product['quantity'] == 0 %}
-                                    <span class="badge out-stock">Out of Stock</span>
-                                {% elif product['quantity'] <= product['reorder_level'] %}
-                                    <span class="badge low-stock">Low Stock</span>
+                            <td>
+                                {% if product['quantity']|int == 0 %}
+                                <span class="badge out-of-stock">Out of Stock</span>
+                                {% elif product['quantity']|int <= product['reorder_level']|int %}
+                                <span class="badge low-stock">Low Stock</span>
                                 {% else %}
-                                    <span class="badge in-stock">In Stock</span>
+                                <span class="badge in-stock">In Stock</span>
                                 {% endif %}
                             </td>
 
-                            <td>
-                                <div class="row-actions">
-                                    {% if can_update %}
-                                        <a href="{{ url_for('update_product', product_id=product['product_id']) }}"
-                                           class="btn btn-ghost btn-sm">Update</a>
-                                    {% endif %}
-                                    {% if can_delete %}
-                                        <a href="{{ url_for('confirm_delete_product', product_id=product['product_id']) }}"
-                                           class="btn btn-outline-danger btn-sm">Delete</a>
-                                    {% endif %}
-                                    {% if not can_update and not can_delete %}
-                                        —
-                                    {% endif %}
-                                </div>
+                            {% if can_update or can_delete %}
+                            <td class="action-cell">
+
+                                {% if can_update %}
+                                <a
+                                    href="{{ url_for('update_product', product_id=product['product_id']) }}"
+                                    class="update-button">
+                                    ✏️ Update
+                                </a>
+                                {% endif %}
+
+                                {% if can_delete %}
+                                <a
+                                    href="{{ url_for('confirm_delete_product', product_id=product['product_id']) }}"
+                                    class="update-button delete-button">
+                                    🗑️ Delete
+                                </a>
+                                {% endif %}
+
+                            </td>
+                            {% endif %}
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="9" class="empty-message">
+                                No products found in your inventory.
                             </td>
                         </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="9" class="empty">No products found.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
 
-    </section>
+                        {% endfor %}
 
-</main>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script>
+
+function filterInventory() {
+
+    const category =
+        document.getElementById("categoryFilter").value;
+
+    const status =
+        document.getElementById("statusFilter").value;
+
+    const rows =
+        document.querySelectorAll("#inventoryBody tr[data-category]");
+
+    rows.forEach(row => {
+
+        const rowCategory = row.dataset.category;
+        const rowStatus = row.dataset.status;
+
+        const categoryMatch =
+            category === "all" || rowCategory === category;
+
+        const statusMatch =
+            status === "all" || rowStatus === status;
+
+        row.style.display =
+            categoryMatch && statusMatch ? "" : "none";
+
+    });
+
+}
+
+function exportInventory() {
+
+    const table = document.getElementById("inventoryTable");
+
+    const rows = Array.from(table.querySelectorAll("tr"));
+
+    const csv = rows.map(row => {
+
+        return Array.from(row.querySelectorAll("th, td"))
+            .map(cell => {
+
+                let value = cell.innerText.trim();
+                value = value.replace(/"/g, '""');
+
+                return '"' + value + '"';
+
+            })
+            .join(",");
+
+    }).join("\n");
+
+    const blob = new Blob(
+        ["\uFEFF" + csv],
+        { type: "text/csv;charset=utf-8;" }
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "ESIMS_Inventory_Report.csv";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+
+}
+
+</script>
+
 </body>
 </html>
+```
