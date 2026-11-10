@@ -1,7 +1,8 @@
 """
 Electronics Store Inventory Management System (ESIMS)
 Authentication, inventory, product management, dashboard,
-role-based access control, and Availability Report (ESIMS-14).
+role-based access control, Availability Report (ESIMS-14),
+and Inventory Dashboard (ESIMS-16).
 """
 
 import os
@@ -33,7 +34,6 @@ ROLES = {
     "management",
 }
 
-# Who may do what (matches the role table in README.md).
 ADD_ROLES = ("admin", "store_manager")
 UPDATE_ROLES = ("admin", "store_manager", "store_employee")
 DASHBOARD_ROLES = ("admin", "store_manager", "management")
@@ -290,31 +290,40 @@ def create_app(test_config=None):
         return redirect(url_for("login"))
 
     # --------------------------------------------------------
-    # DASHBOARD
+    # DASHBOARD - ESIMS-16
     # --------------------------------------------------------
 
     @app.get("/dashboard")
     @roles_required(*DASHBOARD_ROLES)
     def dashboard():
+
+        # Total number of products
         total_products = execute(
             "SELECT COUNT(*) AS total FROM products",
             fetchone=True,
         )["total"]
 
+        # Total stock quantity
         total_stock = execute(
-            "SELECT COALESCE(SUM(quantity), 0) AS total FROM products",
-            fetchone=True,
-        )["total"]
-
-        low_stock = execute(
             """
-            SELECT COUNT(*) AS total
+            SELECT COALESCE(SUM(quantity), 0) AS total
             FROM products
-            WHERE quantity > 0 AND quantity <= reorder_level
             """,
             fetchone=True,
         )["total"]
 
+        # Low-stock products
+        low_stock = execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM products
+            WHERE quantity > 0
+              AND quantity <= reorder_level
+            """,
+            fetchone=True,
+        )["total"]
+
+        # Out-of-stock products
         out_of_stock = execute(
             """
             SELECT COUNT(*) AS total
@@ -324,12 +333,38 @@ def create_app(test_config=None):
             fetchone=True,
         )["total"]
 
+        # Total inventory value
+        inventory_value = execute(
+            """
+            SELECT COALESCE(SUM(price * quantity), 0) AS total
+            FROM products
+            """,
+            fetchone=True,
+        )["total"]
+
+        # Category-wise inventory summary
+        category_summary = execute(
+            """
+            SELECT
+                category,
+                COUNT(*) AS product_count,
+                COALESCE(SUM(quantity), 0) AS total_quantity,
+                COALESCE(SUM(price * quantity), 0) AS category_value
+            FROM products
+            GROUP BY category
+            ORDER BY category
+            """,
+            fetchall=True,
+        )
+
         return render_template(
             "dashboard.html",
             total_products=total_products,
             total_stock=total_stock,
             low_stock=low_stock,
             out_of_stock=out_of_stock,
+            inventory_value=inventory_value,
+            category_summary=category_summary,
         )
 
     # --------------------------------------------------------

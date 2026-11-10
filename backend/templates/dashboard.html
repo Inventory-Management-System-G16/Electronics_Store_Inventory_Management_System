@@ -5,12 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#172554">
 
-    <title>ESIMS | Dashboard</title>
+    <title>ESIMS | Inventory Dashboard</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
 
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
@@ -19,7 +22,12 @@
             color: #1e293b;
         }
 
-        .layout { display: flex; min-height: 100vh; }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
 
         .sidebar {
             width: 255px;
@@ -37,7 +45,9 @@
             padding: 0 12px 38px;
         }
 
-        .brand span { color: #60a5fa; }
+        .brand span {
+            color: #60a5fa;
+        }
 
         .menu-title {
             color: #94a3b8;
@@ -59,12 +69,15 @@
             transition: .2s;
         }
 
-        .menu a:hover, .menu a.active {
+        .menu a:hover,
+        .menu a.active {
             background: #2563eb;
             color: white;
         }
 
-        .sidebar-bottom { margin-top: auto; }
+        .sidebar-bottom {
+            margin-top: auto;
+        }
 
         .user-box {
             padding: 15px;
@@ -75,7 +88,9 @@
             overflow-wrap: anywhere;
         }
 
-        .user-box strong { color: white; }
+        .user-box strong {
+            color: white;
+        }
 
         .logout-button {
             margin-top: 14px;
@@ -88,6 +103,12 @@
             cursor: pointer;
             font-weight: 600;
         }
+
+        .logout-button:hover {
+            background: #b91c1c;
+        }
+
+        /* MAIN CONTENT */
 
         .main-content {
             flex: 1;
@@ -125,8 +146,10 @@
             white-space: nowrap;
         }
 
+        /* WELCOME */
+
         .welcome-card {
-            background: linear-gradient(120deg,#1d4ed8,#6366f1);
+            background: linear-gradient(120deg, #1d4ed8, #6366f1);
             color: white;
             padding: 28px 30px;
             border-radius: 15px;
@@ -145,15 +168,19 @@
             font-size: 14px;
         }
 
+        /* SECTION TITLES */
+
         .section-title {
             font-size: 18px;
             color: #172554;
             margin: 0 0 17px;
         }
 
+        /* METRIC CARDS */
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4,minmax(0,1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 17px;
         }
 
@@ -182,14 +209,32 @@
             margin-bottom: 15px;
         }
 
-        .blue-icon { background: #dbeafe; }
-        .green-icon { background: #dcfce7; }
-        .orange-icon { background: #fef3c7; }
-        .red-icon { background: #fee2e2; }
+        .blue-icon {
+            background: #dbeafe;
+        }
 
-        .stat-label { color: #64748b; font-size: 13px; }
+        .green-icon {
+            background: #dcfce7;
+        }
 
-        .stat-number {
+        .orange-icon {
+            background: #fef3c7;
+        }
+
+        .red-icon {
+            background: #fee2e2;
+        }
+
+        .purple-icon {
+            background: #ede9fe;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .metric-value {
             font-size: 30px;
             font-weight: 800;
             color: #172554;
@@ -202,11 +247,103 @@
             margin-top: 7px;
         }
 
-        .quick-section { margin-top: 32px; }
+        /* INVENTORY VALUE */
+
+        .value-section {
+            margin-top: 25px;
+        }
+
+        .value-card {
+            background: white;
+            padding: 25px;
+            border-radius: 13px;
+            border: 1px solid #e8edf5;
+            box-shadow: 0 4px 14px rgba(15,23,42,.04);
+        }
+
+        .value-label {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .value-number {
+            color: #15803d;
+            font-size: 32px;
+            font-weight: 800;
+            margin-top: 9px;
+        }
+
+        .value-description {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 7px;
+        }
+
+        /* CATEGORY TABLE */
+
+        .category-section {
+            margin-top: 32px;
+        }
+
+        .table-card {
+            background: white;
+            border: 1px solid #e8edf5;
+            border-radius: 13px;
+            padding: 20px;
+            overflow-x: auto;
+            box-shadow: 0 4px 14px rgba(15,23,42,.04);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 550px;
+        }
+
+        th {
+            text-align: left;
+            color: #64748b;
+            font-size: 12px;
+            padding: 15px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            padding: 16px 15px;
+            font-size: 13px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .category-name {
+            font-weight: 700;
+            color: #1e40af;
+        }
+
+        .amount {
+            font-weight: 700;
+            color: #15803d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+        }
+
+        /* QUICK ACCESS */
+
+        .quick-section {
+            margin-top: 32px;
+        }
 
         .quick-grid {
             display: grid;
-            grid-template-columns: repeat(2,minmax(0,1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 17px;
         }
 
@@ -239,24 +376,60 @@
             line-height: 1.6;
         }
 
-        @media(max-width:1100px) {
-            .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+        /* RESPONSIVE */
+
+        @media(max-width: 1100px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
 
-        @media(max-width:750px) {
-            .layout { flex-direction: column; }
-            .sidebar { width: 100%; padding: 18px; }
-            .brand { padding-bottom: 20px; }
-            .menu { display: flex; flex-wrap: wrap; gap: 6px; }
-            .menu a { margin: 0; }
-            .sidebar-bottom { margin-top: 15px; }
-            .main-content { padding: 22px 15px; }
-            .topbar { flex-direction: column; align-items: flex-start; }
-            .quick-grid { grid-template-columns: 1fr; }
+        @media(max-width: 750px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 18px;
+            }
+
+            .brand {
+                padding-bottom: 20px;
+            }
+
+            .menu {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .menu a {
+                margin: 0;
+            }
+
+            .sidebar-bottom {
+                margin-top: 15px;
+            }
+
+            .main-content {
+                padding: 22px 15px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .quick-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        @media(max-width:450px) {
-            .stats-grid { grid-template-columns: 1fr; }
+        @media(max-width: 450px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -264,6 +437,8 @@
 <body>
 
 <div class="layout">
+
+    <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
@@ -274,15 +449,15 @@
         <nav class="menu">
 
             <a href="{{ url_for('dashboard') }}" class="active">
-                ðŸ  Dashboard
+                🏠 Dashboard
             </a>
 
             <a href="{{ url_for('inventory') }}">
-                ðŸ“¦ Inventory
+                📦 Inventory
             </a>
 
             <a href="{{ url_for('availability_report') }}">
-                ðŸ“Š Availability Report
+                📊 Availability Report
             </a>
 
         </nav>
@@ -297,7 +472,7 @@
 
             <form method="POST" action="{{ url_for('logout') }}">
                 <button type="submit" class="logout-button">
-                    â†ª Log Out
+                    ↪ Log Out
                 </button>
             </form>
 
@@ -305,6 +480,7 @@
 
     </aside>
 
+    <!-- MAIN DASHBOARD -->
 
     <main class="main-content">
 
@@ -315,46 +491,51 @@
                 <p>Monitor and manage your electronics store inventory.</p>
             </div>
 
-            <div class="system-status">â— System Active</div>
+            <div class="system-status">
+                ● System Active
+            </div>
 
         </header>
 
+        <!-- WELCOME -->
 
         <section class="welcome-card">
-            <h2>Welcome to ElectroStore ðŸ‘‹</h2>
+            <h2>Welcome to ElectroStore 👋</h2>
             <p>
-                Here's your real-time overview of inventory and stock status.
+                Here's your real-time overview of inventory,
+                stock levels and inventory value.
             </p>
         </section>
 
+        <!-- INVENTORY METRICS -->
 
         <h2 class="section-title">Inventory Summary</h2>
 
         <section class="stats-grid">
 
             <article class="stat-card">
-                <div class="stat-icon blue-icon">ðŸ“¦</div>
+                <div class="stat-icon blue-icon">📦</div>
                 <div class="stat-label">Total Products</div>
                 <div class="metric-value">{{ total_products }}</div>
                 <div class="stat-description">Registered products</div>
             </article>
 
             <article class="stat-card">
-                <div class="stat-icon green-icon">ðŸ“Š</div>
+                <div class="stat-icon green-icon">📊</div>
                 <div class="stat-label">Total Stock Quantity</div>
                 <div class="metric-value">{{ total_stock }}</div>
                 <div class="stat-description">Combined stock units</div>
             </article>
 
             <article class="stat-card">
-                <div class="stat-icon orange-icon">âš ï¸</div>
+                <div class="stat-icon orange-icon">⚠️</div>
                 <div class="stat-label">Low Stock</div>
                 <div class="metric-value">{{ low_stock }}</div>
                 <div class="stat-description">Products needing attention</div>
             </article>
 
             <article class="stat-card">
-                <div class="stat-icon red-icon">ðŸš«</div>
+                <div class="stat-icon red-icon">🚫</div>
                 <div class="stat-label">Out of Stock</div>
                 <div class="metric-value">{{ out_of_stock }}</div>
                 <div class="stat-description">Products with zero quantity</div>
@@ -362,6 +543,96 @@
 
         </section>
 
+        <!-- INVENTORY VALUE -->
+
+        <section class="value-section">
+
+            <h2 class="section-title">Inventory Valuation</h2>
+
+            <div class="value-card">
+
+                <div class="stat-icon purple-icon">💰</div>
+
+                <div class="value-label">
+                    Total Inventory Value
+                </div>
+
+                <div class="value-number">
+                    ₹{{ "%.2f"|format(inventory_value|float) }}
+                </div>
+
+                <div class="value-description">
+                    Calculated using product price multiplied by available quantity.
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- CATEGORY SUMMARY -->
+
+        <section class="category-section">
+
+            <h2 class="section-title">
+                Category-wise Inventory Summary
+            </h2>
+
+            <div class="table-card">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Products</th>
+                            <th>Total Quantity</th>
+                            <th>Inventory Value</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in category_summary %}
+
+                        <tr>
+
+                            <td class="category-name">
+                                {{ item.category or "Uncategorized" }}
+                            </td>
+
+                            <td>
+                                {{ item.product_count }}
+                            </td>
+
+                            <td>
+                                {{ item.total_quantity }}
+                            </td>
+
+                            <td class="amount">
+                                ₹{{ "%.2f"|format(item.category_value|float) }}
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                No inventory categories available.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <!-- QUICK ACCESS -->
 
         <section class="quick-section">
 
@@ -369,14 +640,26 @@
 
             <div class="quick-grid">
 
-                <a href="{{ url_for('inventory') }}" class="quick-card">
-                    <h3>ðŸ“¦ View Inventory â†’</h3>
-                    <p>View, search and manage products in your store.</p>
+                <a href="{{ url_for('inventory') }}"
+                   class="quick-card">
+
+                    <h3>📦 View Inventory →</h3>
+
+                    <p>
+                        View, search and manage products in your store.
+                    </p>
+
                 </a>
 
-                <a href="{{ url_for('availability_report') }}" class="quick-card">
-                    <h3>ðŸ“Š Availability Report â†’</h3>
-                    <p>Monitor product availability and stock levels.</p>
+                <a href="{{ url_for('availability_report') }}"
+                   class="quick-card">
+
+                    <h3>📊 Availability Report →</h3>
+
+                    <p>
+                        Monitor product availability and stock levels.
+                    </p>
+
                 </a>
 
             </div>
