@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,12 +10,19 @@
           href="{{ url_for('static', filename='style.css') }}">
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             min-height: 100vh;
+            margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 24px;
+            font-family: "Segoe UI", Arial, sans-serif;
+
             background:
                 radial-gradient(circle at 15% 20%, #4338ca 0, transparent 35%),
                 radial-gradient(circle at 85% 80%, #7c3aed 0, transparent 35%),
@@ -111,8 +118,8 @@
         .login-panel input[type="text"],
         .login-panel input[type="email"],
         .login-panel input[type="password"] {
+            display: block;
             width: 100%;
-            box-sizing: border-box;
             padding: 13px 14px;
             color: #18213b;
             background: #f9faff;
@@ -203,7 +210,6 @@
 
     <main class="login-layout">
 
-        <!-- Left welcome panel -->
         <section class="login-banner">
 
             <div class="brand-icon">📦</div>
@@ -224,7 +230,6 @@
 
         </section>
 
-        <!-- Right login panel -->
         <section class="login-panel">
 
             <h2>Welcome back!</h2>
@@ -233,7 +238,6 @@
                 Sign in to access your inventory dashboard.
             </p>
 
-            <!-- Flask login form -->
             <form method="POST"
                   action="{{ url_for('login', next=request.args.get('next', '')) }}">
 
