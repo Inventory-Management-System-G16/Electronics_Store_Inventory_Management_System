@@ -1,173 +1,391 @@
-```html
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Dashboard</title>
+    <meta name="theme-color" content="#172554">
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
+    <title>ESIMS | Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
-        .dashboard {
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 24px;
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f3f6fc;
+            color: #1e293b;
         }
 
-        .dashboard-header {
-            margin-bottom: 30px;
+        .layout { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 255px;
+            background: #172554;
+            color: white;
+            padding: 28px 18px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
         }
 
-        .dashboard-header h1 {
+        .brand {
+            font-size: 22px;
+            font-weight: 800;
+            padding: 0 12px 38px;
+        }
+
+        .brand span { color: #60a5fa; }
+
+        .menu-title {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 0 12px;
+            margin-bottom: 15px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 14px;
             margin-bottom: 8px;
+            color: #dbeafe;
+            border-radius: 9px;
+            font-size: 14px;
+            text-decoration: none;
+            transition: .2s;
         }
 
-        .dashboard-header p {
+        .menu a:hover, .menu a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .sidebar-bottom { margin-top: auto; }
+
+        .user-box {
+            padding: 15px;
+            background: rgba(255,255,255,.08);
+            border-radius: 10px;
+            font-size: 13px;
+            color: #dbeafe;
+            overflow-wrap: anywhere;
+        }
+
+        .user-box strong { color: white; }
+
+        .logout-button {
+            margin-top: 14px;
+            width: 100%;
+            padding: 12px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 32px 38px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 28px;
+        }
+
+        .heading h1 {
+            margin: 0 0 7px;
+            font-size: 29px;
+            color: #172554;
+        }
+
+        .heading p {
+            margin: 0;
             color: #64748b;
+            font-size: 14px;
         }
 
-        .dashboard-grid {
+        .system-status {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 9px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .welcome-card {
+            background: linear-gradient(120deg,#1d4ed8,#6366f1);
+            color: white;
+            padding: 28px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(37,99,235,.14);
+        }
+
+        .welcome-card h2 {
+            margin: 0 0 9px;
+            font-size: 23px;
+        }
+
+        .welcome-card p {
+            margin: 0;
+            color: #dbeafe;
+            font-size: 14px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #172554;
+            margin: 0 0 17px;
+        }
+
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 22px;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            gap: 17px;
         }
 
-        .metric-card {
-            padding: 26px;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-left: 5px solid #2563eb;
-            border-radius: 12px;
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+        .stat-card {
+            background: white;
+            padding: 22px;
+            border-radius: 13px;
+            border: 1px solid #e8edf5;
+            box-shadow: 0 4px 14px rgba(15,23,42,.04);
+            transition: .2s;
         }
 
-        .metric-card h2 {
-            margin: 0 0 16px;
-            color: #475569;
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(15,23,42,.08);
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            font-size: 21px;
+            margin-bottom: 15px;
+        }
+
+        .blue-icon { background: #dbeafe; }
+        .green-icon { background: #dcfce7; }
+        .orange-icon { background: #fef3c7; }
+        .red-icon { background: #fee2e2; }
+
+        .stat-label { color: #64748b; font-size: 13px; }
+
+        .stat-number {
+            font-size: 30px;
+            font-weight: 800;
+            color: #172554;
+            margin-top: 8px;
+        }
+
+        .stat-description {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 7px;
+        }
+
+        .quick-section { margin-top: 32px; }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(2,minmax(0,1fr));
+            gap: 17px;
+        }
+
+        .quick-card {
+            display: block;
+            background: white;
+            border: 1px solid #e8edf5;
+            border-radius: 13px;
+            padding: 23px;
+            color: #1e293b;
+            text-decoration: none;
+            transition: .2s;
+        }
+
+        .quick-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-3px);
+        }
+
+        .quick-card h3 {
+            margin: 0 0 8px;
+            color: #1d4ed8;
             font-size: 16px;
         }
 
-        .metric-value {
-            color: #0f172a;
-            font-size: 36px;
-            font-weight: 700;
-        }
-
-        .metric-description {
-            margin-top: 12px;
+        .quick-card p {
+            margin: 0;
             color: #64748b;
             font-size: 13px;
+            line-height: 1.6;
         }
 
-        .stock-card {
-            border-left-color: #16a34a;
+        @media(max-width:1100px) {
+            .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
         }
 
-        .low-card {
-            border-left-color: #f59e0b;
+        @media(max-width:750px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; padding: 18px; }
+            .brand { padding-bottom: 20px; }
+            .menu { display: flex; flex-wrap: wrap; gap: 6px; }
+            .menu a { margin: 0; }
+            .sidebar-bottom { margin-top: 15px; }
+            .main-content { padding: 22px 15px; }
+            .topbar { flex-direction: column; align-items: flex-start; }
+            .quick-grid { grid-template-columns: 1fr; }
         }
 
-        .out-card {
-            border-left-color: #dc2626;
-        }
-
-        .dashboard-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 28px;
-        }
-
-        .dashboard-button {
-            display: inline-block;
-            padding: 11px 18px;
-            border: none;
-            border-radius: 7px;
-            background: #2563eb;
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .dashboard-button:hover {
-            background: #1d4ed8;
-        }
-
-        @media (max-width: 600px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .dashboard {
-                margin: 16px auto;
-                padding: 16px;
-            }
+        @media(max-width:450px) {
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 
 <body>
-    <main class="dashboard">
 
-        <header class="dashboard-header">
-            <h1>Inventory Dashboard</h1>
-            <p>Monitor your store's inventory at a glance.</p>
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">ELECTRO<span>STORE</span></div>
+
+        <div class="menu-title">MAIN MENU</div>
+
+        <nav class="menu">
+
+            <a href="{{ url_for('dashboard') }}" class="active">
+                ðŸ  Dashboard
+            </a>
+
+            <a href="{{ url_for('inventory') }}">
+                ðŸ“¦ Inventory
+            </a>
+
+            <a href="{{ url_for('availability_report') }}">
+                ðŸ“Š Availability Report
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="user-box">
+                <div>Logged in as</div>
+                <strong>{{ session.get('username') }}</strong>
+                <div>{{ session.get('role') }}</div>
+            </div>
+
+            <form method="POST" action="{{ url_for('logout') }}">
+                <button type="submit" class="logout-button">
+                    â†ª Log Out
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div class="heading">
+                <h1>Dashboard Overview</h1>
+                <p>Monitor and manage your electronics store inventory.</p>
+            </div>
+
+            <div class="system-status">â— System Active</div>
+
         </header>
 
-        <section class="dashboard-grid">
 
-            <article class="metric-card">
-                <h2>📦 Total Products</h2>
+        <section class="welcome-card">
+            <h2>Welcome to ElectroStore ðŸ‘‹</h2>
+            <p>
+                Here's your real-time overview of inventory and stock status.
+            </p>
+        </section>
+
+
+        <h2 class="section-title">Inventory Summary</h2>
+
+        <section class="stats-grid">
+
+            <article class="stat-card">
+                <div class="stat-icon blue-icon">ðŸ“¦</div>
+                <div class="stat-label">Total Products</div>
                 <div class="metric-value">{{ total_products }}</div>
-                <p class="metric-description">
-                    Total products registered in the inventory.
-                </p>
+                <div class="stat-description">Registered products</div>
             </article>
 
-            <article class="metric-card stock-card">
-                <h2>📊 Total Stock Quantity</h2>
+            <article class="stat-card">
+                <div class="stat-icon green-icon">ðŸ“Š</div>
+                <div class="stat-label">Total Stock Quantity</div>
                 <div class="metric-value">{{ total_stock }}</div>
-                <p class="metric-description">
-                    Combined quantity of all products.
-                </p>
+                <div class="stat-description">Combined stock units</div>
             </article>
 
-            <article class="metric-card low-card">
-                <h2>⚠️ Low-Stock Count</h2>
+            <article class="stat-card">
+                <div class="stat-icon orange-icon">âš ï¸</div>
+                <div class="stat-label">Low Stock</div>
                 <div class="metric-value">{{ low_stock }}</div>
-                <p class="metric-description">
-                    Products at or below their reorder level, excluding zero stock.
-                </p>
+                <div class="stat-description">Products needing attention</div>
             </article>
 
-            <article class="metric-card out-card">
-                <h2>🔴 Out-of-Stock Count</h2>
+            <article class="stat-card">
+                <div class="stat-icon red-icon">ðŸš«</div>
+                <div class="stat-label">Out of Stock</div>
                 <div class="metric-value">{{ out_of_stock }}</div>
-                <p class="metric-description">
-                    Products that currently have zero stock.
-                </p>
+                <div class="stat-description">Products with zero quantity</div>
             </article>
 
         </section>
 
-        <nav class="dashboard-actions">
-            <a class="dashboard-button"
-               href="{{ url_for('inventory') }}">
-                View Inventory
-            </a>
 
-            <form method="POST" action="{{ url_for('logout') }}">
-                <button class="dashboard-button" type="submit">
-                    Log Out
-                </button>
-            </form>
-        </nav>
+        <section class="quick-section">
+
+            <h2 class="section-title">Quick Access</h2>
+
+            <div class="quick-grid">
+
+                <a href="{{ url_for('inventory') }}" class="quick-card">
+                    <h3>ðŸ“¦ View Inventory â†’</h3>
+                    <p>View, search and manage products in your store.</p>
+                </a>
+
+                <a href="{{ url_for('availability_report') }}" class="quick-card">
+                    <h3>ðŸ“Š Availability Report â†’</h3>
+                    <p>Monitor product availability and stock levels.</p>
+                </a>
+
+            </div>
+
+        </section>
 
     </main>
+
+</div>
+
 </body>
 </html>
-```
