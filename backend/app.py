@@ -376,15 +376,15 @@ def create_app(test_config=None):
         )
 
     # --------------------------------------------------------
-    # AVAILABILITY REPORT - ESIMS-14
+    # AVAILABILITY REPORT - ESIMS-14 AND ESIMS-15
     # --------------------------------------------------------
 
     @app.get("/availability-report")
     @roles_required("admin", "store_manager", "management")
     def availability_report():
-        """Generate product availability data from the database."""
+        """Generate and filter product availability data."""
 
-        products = execute(
+        all_products = execute(
             """
             SELECT product_id, product_name, category,
                    quantity, reorder_level, location
@@ -394,20 +394,21 @@ def create_app(test_config=None):
             fetchall=True,
         )
 
-        total_products = len(products)
+        # Calculate summary metrics using all products.
+        total_products = len(all_products)
 
         total_stock = sum(
             int(product["quantity"] or 0)
-            for product in products
+            for product in all_products
         )
 
         out_of_stock = sum(
-            1 for product in products
+            1 for product in all_products
             if int(product["quantity"] or 0) <= 0
         )
 
         low_stock = sum(
-            1 for product in products
+            1 for product in all_products
             if (
                 int(product["quantity"] or 0) > 0
                 and int(product["quantity"] or 0)
@@ -417,9 +418,60 @@ def create_app(test_config=None):
 
         in_stock = total_products - low_stock - out_of_stock
 
+        # Read search and status filters from URL parameters.
+        search = request.args.get("search", "").strip().lower()
+        status = request.args.get("status", "").strip().lower()
+
+        # Validate the selected status.
+        valid_statuses = {
+            "",
+            "in_stock",
+            "low_stock",
+            "out_of_stock",
+        }
+
+        if status not in valid_statuses:
+            status = ""
+
+        filtered_products = []
+
+        # Apply filters to the product list.
+        for product in all_products:
+
+            quantity = int(product["quantity"] or 0)
+            reorder_level = int(product["reorder_level"] or 0)
+
+            # Determine stock status.
+            if quantity <= 0:
+                product_status = "out_of_stock"
+
+            elif quantity <= reorder_level:
+                product_status = "low_stock"
+
+            else:
+                product_status = "in_stock"
+
+            # Apply stock-status filter.
+            if status and product_status != status:
+                continue
+
+            # Search by product ID, name, or category.
+            searchable_text = " ".join(
+                [
+                    str(product["product_id"] or ""),
+                    str(product["product_name"] or ""),
+                    str(product["category"] or ""),
+                ]
+            ).lower()
+
+            if search and search not in searchable_text:
+                continue
+
+            filtered_products.append(product)
+
         return render_template(
             "availability_report.html",
-            products=products,
+            products=filtered_products,
             total_products=total_products,
             total_stock=total_stock,
             in_stock=in_stock,
