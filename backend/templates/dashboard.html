@@ -10,7 +10,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
@@ -19,7 +21,10 @@
             color: #1e293b;
         }
 
-        .layout { display: flex; min-height: 100vh; }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
 
         .sidebar {
             width: 255px;
@@ -37,7 +42,9 @@
             padding: 0 12px 38px;
         }
 
-        .brand span { color: #60a5fa; }
+        .brand span {
+            color: #60a5fa;
+        }
 
         .menu-title {
             color: #94a3b8;
@@ -59,12 +66,15 @@
             transition: .2s;
         }
 
-        .menu a:hover, .menu a.active {
+        .menu a:hover,
+        .menu a.active {
             background: #2563eb;
             color: white;
         }
 
-        .sidebar-bottom { margin-top: auto; }
+        .sidebar-bottom {
+            margin-top: auto;
+        }
 
         .user-box {
             padding: 15px;
@@ -75,7 +85,9 @@
             overflow-wrap: anywhere;
         }
 
-        .user-box strong { color: white; }
+        .user-box strong {
+            color: white;
+        }
 
         .logout-button {
             margin-top: 14px;
@@ -182,14 +194,28 @@
             margin-bottom: 15px;
         }
 
-        .blue-icon { background: #dbeafe; }
-        .green-icon { background: #dcfce7; }
-        .orange-icon { background: #fef3c7; }
-        .red-icon { background: #fee2e2; }
+        .blue-icon {
+            background: #dbeafe;
+        }
 
-        .stat-label { color: #64748b; font-size: 13px; }
+        .green-icon {
+            background: #dcfce7;
+        }
 
-        .stat-number {
+        .orange-icon {
+            background: #fef3c7;
+        }
+
+        .red-icon {
+            background: #fee2e2;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .metric-value {
             font-size: 30px;
             font-weight: 800;
             color: #172554;
@@ -202,7 +228,9 @@
             margin-top: 7px;
         }
 
-        .quick-section { margin-top: 32px; }
+        .quick-section {
+            margin-top: 32px;
+        }
 
         .quick-grid {
             display: grid;
@@ -240,23 +268,57 @@
         }
 
         @media(max-width:1100px) {
-            .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+            .stats-grid {
+                grid-template-columns: repeat(2,minmax(0,1fr));
+            }
         }
 
         @media(max-width:750px) {
-            .layout { flex-direction: column; }
-            .sidebar { width: 100%; padding: 18px; }
-            .brand { padding-bottom: 20px; }
-            .menu { display: flex; flex-wrap: wrap; gap: 6px; }
-            .menu a { margin: 0; }
-            .sidebar-bottom { margin-top: 15px; }
-            .main-content { padding: 22px 15px; }
-            .topbar { flex-direction: column; align-items: flex-start; }
-            .quick-grid { grid-template-columns: 1fr; }
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 18px;
+            }
+
+            .brand {
+                padding-bottom: 20px;
+            }
+
+            .menu {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .menu a {
+                margin: 0;
+            }
+
+            .sidebar-bottom {
+                margin-top: 15px;
+            }
+
+            .main-content {
+                padding: 22px 15px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .quick-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media(max-width:450px) {
-            .stats-grid { grid-template-columns: 1fr; }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -267,22 +329,24 @@
 
     <aside class="sidebar">
 
-        <div class="brand">ELECTRO<span>STORE</span></div>
+        <div class="brand">
+            ELECTRO<span>STORE</span>
+        </div>
 
         <div class="menu-title">MAIN MENU</div>
 
         <nav class="menu">
 
             <a href="{{ url_for('dashboard') }}" class="active">
-                ðŸ  Dashboard
+                &#127968; Dashboard
             </a>
 
             <a href="{{ url_for('inventory') }}">
-                ðŸ“¦ Inventory
+                &#128230; Inventory
             </a>
 
             <a href="{{ url_for('availability_report') }}">
-                ðŸ“Š Availability Report
+                &#128202; Availability Report
             </a>
 
         </nav>
@@ -297,14 +361,13 @@
 
             <form method="POST" action="{{ url_for('logout') }}">
                 <button type="submit" class="logout-button">
-                    â†ª Log Out
+                    &#8617; Log Out
                 </button>
             </form>
 
         </div>
 
     </aside>
-
 
     <main class="main-content">
 
@@ -315,53 +378,99 @@
                 <p>Monitor and manage your electronics store inventory.</p>
             </div>
 
-            <div class="system-status">â— System Active</div>
+            <div class="system-status">
+                &#9679; System Active
+            </div>
 
         </header>
 
-
         <section class="welcome-card">
-            <h2>Welcome to ElectroStore ðŸ‘‹</h2>
+
+            <h2>Welcome to ElectroStore &#128075;</h2>
+
             <p>
                 Here's your real-time overview of inventory and stock status.
             </p>
-        </section>
 
+        </section>
 
         <h2 class="section-title">Inventory Summary</h2>
 
         <section class="stats-grid">
 
             <article class="stat-card">
-                <div class="stat-icon blue-icon">ðŸ“¦</div>
+
+                <div class="stat-icon blue-icon">
+                    &#128230;
+                </div>
+
                 <div class="stat-label">Total Products</div>
-                <div class="metric-value">{{ total_products }}</div>
-                <div class="stat-description">Registered products</div>
+
+                <div class="metric-value">
+                    {{ total_products }}
+                </div>
+
+                <div class="stat-description">
+                    Registered products
+                </div>
+
             </article>
 
             <article class="stat-card">
-                <div class="stat-icon green-icon">ðŸ“Š</div>
+
+                <div class="stat-icon green-icon">
+                    &#128202;
+                </div>
+
                 <div class="stat-label">Total Stock Quantity</div>
-                <div class="metric-value">{{ total_stock }}</div>
-                <div class="stat-description">Combined stock units</div>
+
+                <div class="metric-value">
+                    {{ total_stock }}
+                </div>
+
+                <div class="stat-description">
+                    Combined stock units
+                </div>
+
             </article>
 
             <article class="stat-card">
-                <div class="stat-icon orange-icon">âš ï¸</div>
+
+                <div class="stat-icon orange-icon">
+                    &#9888;&#65039;
+                </div>
+
                 <div class="stat-label">Low Stock</div>
-                <div class="metric-value">{{ low_stock }}</div>
-                <div class="stat-description">Products needing attention</div>
+
+                <div class="metric-value">
+                    {{ low_stock }}
+                </div>
+
+                <div class="stat-description">
+                    Products needing attention
+                </div>
+
             </article>
 
             <article class="stat-card">
-                <div class="stat-icon red-icon">ðŸš«</div>
+
+                <div class="stat-icon red-icon">
+                    &#128683;
+                </div>
+
                 <div class="stat-label">Out of Stock</div>
-                <div class="metric-value">{{ out_of_stock }}</div>
-                <div class="stat-description">Products with zero quantity</div>
+
+                <div class="metric-value">
+                    {{ out_of_stock }}
+                </div>
+
+                <div class="stat-description">
+                    Products with zero quantity
+                </div>
+
             </article>
 
         </section>
-
 
         <section class="quick-section">
 
@@ -370,13 +479,27 @@
             <div class="quick-grid">
 
                 <a href="{{ url_for('inventory') }}" class="quick-card">
-                    <h3>ðŸ“¦ View Inventory â†’</h3>
-                    <p>View, search and manage products in your store.</p>
+
+                    <h3>
+                        &#128230; View Inventory &#8594;
+                    </h3>
+
+                    <p>
+                        View, search and manage products in your store.
+                    </p>
+
                 </a>
 
                 <a href="{{ url_for('availability_report') }}" class="quick-card">
-                    <h3>ðŸ“Š Availability Report â†’</h3>
-                    <p>Monitor product availability and stock levels.</p>
+
+                    <h3>
+                        &#128202; Availability Report &#8594;
+                    </h3>
+
+                    <p>
+                        Monitor product availability and stock levels.
+                    </p>
+
                 </a>
 
             </div>
