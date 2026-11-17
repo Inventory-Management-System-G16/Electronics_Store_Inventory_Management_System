@@ -1374,11 +1374,17 @@
                                 ) | lower %}
 
                                 {% set search_term =
-                                    request.args.get('search', '') | lower
+                                    request.args.get('search', '') | trim | lower
                                 %}
 
+                                {# Same rule as app.py: an unknown status value means "all". #}
+                                {% set requested_status =
+                                    request.args.get('status', '') | trim | lower
+                                %}
                                 {% set selected_status =
-                                    request.args.get('status', '')
+                                    requested_status
+                                    if requested_status in ['in_stock', 'low_stock', 'out_of_stock']
+                                    else ''
                                 %}
 
                                 {% if

@@ -92,12 +92,17 @@ def test_unknown_status_value_is_escaped(client, login_as, stocked):
     assert "<script>x</script>" not in html
 
 
-@pytest.mark.xfail(reason="DEF-01: template re-filters on the raw ?status= value, so an unknown "
-                          "status hides every row instead of being ignored like app.py intends")
 def test_unknown_status_value_is_ignored(client, login_as, stocked):
     login_as("admin")
     html = client.get("/availability-report?status=bogus").get_data(as_text=True)
     assert "AVL-IN" in html and "AVL-OUT" in html
+
+
+def test_status_filter_ignores_case_and_spaces(client, login_as, stocked):
+    login_as("admin")
+    html = client.get("/availability-report?status=%20OUT_OF_STOCK%20").get_data(as_text=True)
+    assert "AVL-OUT" in html
+    assert "AVL-IN" not in html
 
 
 def test_report_reflects_new_data(client, login_as, db_path):

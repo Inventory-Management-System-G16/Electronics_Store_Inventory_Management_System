@@ -256,6 +256,6 @@
   "req": "NFR-01/02",
   "desc": "Pages load fast with 200+ products (max < 2000 ms)",
   "result": "PASS",
-  "detail": "/inventory: avg 19 ms, max 24 ms; /availability-report: avg 19 ms, max 25 ms; /dashboard: avg 4 ms, max 5 ms"
+  "detail": "/inventory: avg 16 ms, max 21 ms; /availability-report: avg 17 ms, max 21 ms; /dashboard: avg 4 ms, max 6 ms"
  }
 ]

@@ -18,7 +18,6 @@ See the reports in `G16-Documents/`: Unit Test Report, System Test Report and Co
 
 ## Known issues
 
-- DEF-01 (Low): in the availability report, an unknown `?status=` value shows an empty table. The page template filters on the raw URL value instead of the value chosen in `app.py`. Covered by an expected-failure test.
 - Browser compatibility (Chrome, Firefox, Edge) and usability were checked manually only.
 
 ## Deviations from the plan

@@ -97,7 +97,7 @@ To use a cloud database such as TiDB Cloud, also set `DB_PORT=4000` and `DB_SSL_
 
 | Level | What it checks | Where | Command | Latest result |
 |---|---|---|---|---|
-| Unit and route tests | Validation functions and every route with its role rules, on a temporary SQLite database | `backend/tests/` | `pytest -q` | 157 passed, 1 expected failure |
+| Unit and route tests | Validation functions and every route with its role rules, on a temporary SQLite database | `backend/tests/` | `pytest -q` | 159 passed |
 | System tests | The whole app on a real MySQL database, checking the database after each action, plus security and timing checks | `backend/system_tests/` | `python system_tests/run_system_tests.py` | 37 of 37 passed |
 | Lint | Code style | CI | `flake8 app.py seed_users.py tests --max-line-length=120 --extend-ignore=E203,W503,E501` | 0 issues |
 
@@ -113,8 +113,6 @@ pytest -q --cov=app --cov-branch --cov-report=term-missing --cov-report=html:htm
 |---|---:|---:|
 | Unit and route tests (what CI runs) | 92.9% | 88.1% |
 | Plus system tests on MySQL | 95.2% | 90.7% |
-
-The one expected failure is known defect DEF-01: an unknown `?status=` value in the Availability Report URL shows an empty table instead of being ignored. It is low severity.
 
 The system tests delete all rows in the `users` and `products` tables of the database they run against. Use a separate test database. Instructions are at the top of `backend/system_tests/run_system_tests.py`.
 
