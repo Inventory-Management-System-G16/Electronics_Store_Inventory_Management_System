@@ -1,88 +1,296 @@
+﻿```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ESIMS | Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='sr-ui.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Electronics Store Inventory</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(circle at 15% 20%, #4338ca 0, transparent 35%),
+                radial-gradient(circle at 85% 80%, #7c3aed 0, transparent 35%),
+                linear-gradient(135deg, #101936, #172554 55%, #312e81);
+        }
+
+        .login-layout {
+            width: 100%;
+            max-width: 950px;
+            min-height: 540px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            overflow: hidden;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.3);
+        }
+
+        .login-info {
+            padding: 55px 40px;
+            background: linear-gradient(145deg, #1d4ed8, #312e81);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-info h1 {
+            font-size: 34px;
+            margin-bottom: 15px;
+        }
+
+        .login-info p {
+            color: #dbeafe;
+            line-height: 1.7;
+        }
+
+        .login-form-section {
+            padding: 55px 45px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-form-section h2 {
+            color: #172554;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 75px;
+        }
+
+        #pwToggle {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            padding: 5px 9px;
+            background: transparent;
+            border: none;
+            color: #2563eb;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .login-submit {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 9px;
+            background: #2563eb;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .login-submit:hover {
+            background: #1d4ed8;
+        }
+
+        .error-message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 13px;
+        }
+
+        .success-message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background: #dcfce7;
+            color: #166534;
+            font-size: 13px;
+        }
+
+        .login-footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        @media(max-width: 700px) {
+            .login-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .login-info {
+                padding: 30px;
+            }
+
+            .login-form-section {
+                padding: 35px 25px;
+            }
+        }
+    </style>
 </head>
-<body class="ui-page">
-<div class="auth-shell">
 
-    <aside class="auth-brand">
-        <div class="brand">
-            <span class="brand-mark">ES</span>
-            ESIMS
+<body>
+
+<main class="login-layout">
+
+    <section class="login-info">
+
+        <h1>ESIMS</h1>
+
+        <h2>Electronics Store Inventory Management System</h2>
+
+        <p>
+            Manage products, monitor stock availability,
+            update inventory and maintain your store efficiently.
+        </p>
+
+    </section>
+
+    <section class="login-form-section">
+
+        <h2>Welcome Back!</h2>
+
+        <p class="subtitle">
+            Sign in to access your inventory dashboard.
+        </p>
+
+        {% if error %}
+        <div class="error-message" role="alert">
+            {{ error }}
         </div>
+        {% endif %}
 
-        <div>
-            <h2>Know exactly what is on your shelves.</h2>
-            <p>
-                Electronics Store Inventory Management System: one place to
-                track products, stock levels and availability.
-            </p>
-            <ul class="auth-points">
-                <li>Role-based access for every team member</li>
-                <li>Automatic In Stock, Low Stock and Out of Stock status</li>
-                <li>Live dashboard of your inventory health</li>
-            </ul>
-        </div>
-
-        <small>Group 16 &middot; Software Engineering Mini Project</small>
-    </aside>
-
-    <main class="auth-panel">
-        <form class="auth-form" method="post"
-              action="{{ url_for('login', next=request.args.get('next', '')) }}">
-
-            <h1>Welcome back</h1>
-            <p class="lead">Sign in to manage your inventory.</p>
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
                 {% for category, message in messages %}
-                    <p class="notice {{ category }}" role="status">{{ message }}</p>
+                    <div class="success-message" role="alert">
+                        {{ message }}
+                    </div>
                 {% endfor %}
-            {% endwith %}
-
-            {% if error %}
-                <p class="notice error" role="alert">{{ error }}</p>
             {% endif %}
+        {% endwith %}
 
-            <div class="field">
-                <label for="username">Username or email</label>
-                <input id="username" name="username" autocomplete="username"
-                       maxlength="254" required autofocus
-                       placeholder="e.g. manager_demo">
+        <form method="POST" action="{{ url_for('login', next=request.args.get('next', '')) }}">
+
+            <label for="username">Username or email</label>
+
+            <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Enter your username or email"
+                autocomplete="username"
+                maxlength="254"
+                required
+            >
+
+            <label for="password">Password</label>
+
+            <div class="password-wrapper">
+
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
+
+                <button
+                    type="button"
+                    id="pwToggle"
+                    aria-label="Show password"
+                    aria-pressed="false"
+                >
+                    Show
+                </button>
+
             </div>
 
-            <div class="field">
-                <label for="password">Password</label>
-                <div class="pw-wrap">
-                    <input id="password" type="password" name="password"
-                           autocomplete="current-password" required
-                           placeholder="Enter your password">
-                    <button type="button" class="pw-toggle" id="pwToggle"
-                            aria-controls="password">Show</button>
-                </div>
-            </div>
+            <button type="submit" class="login-submit">
+                Sign In
+            </button>
 
-            <button class="btn" type="submit">Log in</button>
         </form>
-    </main>
 
-</div>
+        <div class="login-footer">
+            Electronics Store Inventory Management System
+        </div>
+
+    </section>
+
+</main>
 
 <script>
-    (function () {
-        var button = document.getElementById("pwToggle");
-        var input = document.getElementById("password");
-        button.addEventListener("click", function () {
-            var hidden = input.type === "password";
-            input.type = hidden ? "text" : "password";
-            button.textContent = hidden ? "Hide" : "Show";
-        });
-    })();
+    const passwordInput = document.getElementById("password");
+    const passwordToggle = document.getElementById("pwToggle");
+
+    passwordToggle.addEventListener("click", function () {
+
+        const isPassword = passwordInput.type === "password";
+
+        passwordInput.type = isPassword ? "text" : "password";
+
+        passwordToggle.textContent = isPassword ? "Hide" : "Show";
+
+        passwordToggle.setAttribute("aria-pressed", String(isPassword));
+
+        passwordToggle.setAttribute(
+            "aria-label",
+            isPassword ? "Hide password" : "Show password"
+        );
+
+    });
 </script>
+
 </body>
 </html>
