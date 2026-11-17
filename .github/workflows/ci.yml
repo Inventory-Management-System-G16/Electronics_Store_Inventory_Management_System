@@ -29,6 +29,79 @@ jobs:
           DB_DRIVER: sqlite
           SECRET_KEY: ci-only-test-secret
         run: pytest -q --cov=app --cov-branch --cov-report=term-missing --cov-report=html:htmlcov --junitxml=test-results.xml
+      - name: Add coverage summary
+        if: always()
+        working-directory: backend
+        run: |
+          coverage_status=available
+          if [ -f .coverage ]; then
+            if ! coverage json -o "$RUNNER_TEMP/coverage-summary.json"; then
+              coverage_status=unavailable
+            fi
+          else
+            coverage_status=missing
+          fi
+          COVERAGE_JSON="$RUNNER_TEMP/coverage-summary.json" \
+          COVERAGE_STATUS="$coverage_status" \
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          import os
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          lines = ["## Test and coverage summary", ""]
+          coverage_path = Path(os.environ["COVERAGE_JSON"])
+          if os.environ["COVERAGE_STATUS"] == "available" and coverage_path.is_file():
+              totals = json.loads(coverage_path.read_text(encoding="utf-8"))["totals"]
+              statements = int(totals.get("num_statements", 0))
+              missing_statements = int(totals.get("missing_lines", 0))
+              covered_statements = statements - missing_statements
+              statement_percent = (
+                  f"{covered_statements / statements * 100:.2f}%" if statements else "N/A"
+              )
+              branches = int(totals.get("num_branches", 0))
+              covered_branches = int(totals.get("covered_branches", 0))
+              missing_branches = int(totals.get("missing_branches", branches - covered_branches))
+              branch_percent = (
+                  f"{covered_branches / branches * 100:.2f}%" if branches else "N/A"
+              )
+              lines.extend([
+                  "| Metric | Result |",
+                  "| --- | ---: |",
+                  f"| Statement coverage | {statement_percent} |",
+                  f"| Branch coverage | {branch_percent} |",
+                  f"| Total statements | {statements} |",
+                  f"| Missing statements | {missing_statements} |",
+                  f"| Total branches | {branches} |",
+                  f"| Missing branches | {missing_branches} |",
+              ])
+          else:
+              lines.append(
+                  "Coverage data is unavailable."
+                  if os.environ["COVERAGE_STATUS"] == "missing"
+                  else "Coverage data exists but could not be converted to JSON."
+              )
+
+          junit_path = Path("test-results.xml")
+          if junit_path.is_file():
+              try:
+                  suites = list(ET.parse(junit_path).getroot().iter("testsuite"))
+              except ET.ParseError:
+                  suites = []
+              if suites:
+                  total = sum(int(suite.get("tests", 0)) for suite in suites)
+                  failures = sum(int(suite.get("failures", 0)) for suite in suites)
+                  errors = sum(int(suite.get("errors", 0)) for suite in suites)
+                  skipped = sum(int(suite.get("skipped", 0)) for suite in suites)
+                  passed = total - failures - errors - skipped
+                  lines.extend(["", f"**Tests passed:** {passed} of {total}"])
+              else:
+                  lines.extend(["", "**Tests passed:** unavailable (JUnit results could not be read)"])
+          else:
+              lines.extend(["", "**Tests passed:** unavailable (JUnit results were not generated)"])
+
+          print("\n".join(lines))
+          PY
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
