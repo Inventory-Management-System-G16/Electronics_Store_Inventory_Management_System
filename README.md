@@ -1,117 +1,162 @@
-# ESIMS - Electronics Store Inventory Management System (Group 16)
+# ESIMS - Electronics Store Inventory Management System
 
-Flask + MySQL web application. Current quantity only; no stock-in/stock-out history (see SRS).
+Group 16, Software Engineering, PES University. A Flask and MySQL web application for managing an electronics store's stock, with role-based access.
 
-## Sprint 1 features
+**Live site:** https://electronics-store-inventory-management.onrender.com/login
 
-| Feature | Owner |
-|---|---|
-| Login, Logout, Role-Based Access Control, Add Product | Shreya C Rao |
-| View Inventory, Search Inventory, Update Product, availability status | Shreyas Gowda K A |
-| Dashboard UI | R Laksheeth |
+The site runs on Render's free plan, so the first load after a quiet period can take up to a minute.
 
-Sprint planning notes for the inventory scope are in `docs/sprint1/`.
+## Demo accounts
 
-## 1. Get the code
+| Role | Username | Password |
+|---|---|---|
+| Admin | `admin_demo` | `AdminDemo@123` |
+| Store manager | `manager_demo` | `ManagerDemo@123` |
+| Store employee | `employee_demo` | `EmployeeDemo@123` |
+| Management | `management_demo` | `ManagementDemo@123` |
 
-```bash
-git clone https://github.com/Inventory-Management-System-G16/Electronics_Store_Inventory_Management_System.git
-cd Electronics_Store_Inventory_Management_System
-git switch main
-```
+These are demo accounts for evaluation only. Change or delete them before the app is used for real data.
 
-Keep `G16-Documents/` and `docs/` untouched when adding code.
+## Features
 
-## 2. Python setup
+| Feature | Sprint | Owner |
+|---|---|---|
+| Login, logout, role-based access control, Add Product | 1 | Shreya C Rao |
+| View inventory, search inventory, Update Product, availability status | 1 | Shreyas Gowda K A |
+| Dashboard UI | 1 | R Laksheeth |
+| Delete Product with confirmation, duplicate Product-ID prevention, numeric and mandatory field validation | 2 | Shreya C Rao |
+| Availability Report with search and status filters, dashboard | 2 | R Laksheeth |
+| Inventory search, update quantity and details, availability classification | 2 | Shreyas Gowda K A |
 
-```powershell
-cd backend
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-Copy-Item .env.example .env
-```
+Stock status rules: **Out of Stock** when quantity is 0, **Low Stock** when quantity is greater than 0 and not above the reorder level, otherwise **In Stock**.
 
-Edit `.env` with your local values. Set `SECRET_KEY` to a long random secret. Do not commit `.env`. The sample `.env.example` uses an application DB account; for local setup you may use your own MySQL user.
+The system stores current quantity only. It does not keep stock-in/stock-out history (see the SRS).
 
-Create tables in MySQL Workbench or the MySQL CLI by running `database/schema.sql`. If you run it from the repository root, use the SQL file path there. Ensure the `products` table columns match the existing teammate inventory code (`product_id`, `product_name`, `category`, `price`, `quantity`, `reorder_level`, `location`).
-
-Create demo accounts for local development only:
-
-```powershell
-python seed_users.py
-```
-
-This generates random one-time passwords and prints them in the terminal. Do not use demo users in production. Never hardcode or commit real passwords.
-
-Start the app:
-
-```powershell
-python app.py
-```
-
-Browse to `http://127.0.0.1:5000/login`.
-
-## 3. Role policy
+## Roles
 
 | Capability | Admin | Store manager | Store employee | Management |
-|---|---:|---:|---:|---:|
-| View/search inventory | Yes | Yes | Yes | Yes |
+|---|:---:|:---:|:---:|:---:|
+| View and search inventory | Yes | Yes | Yes | Yes |
 | Add product | Yes | Yes | No | No |
 | Update product | Yes | Yes | Yes | No |
 | Delete product | Yes | Yes | No | No |
-| Reports/dashboard | Yes | Yes | No | Yes |
-| Manage users/settings | Yes | No | No | No |
+| Availability report and dashboard | Yes | Yes | No | Yes |
 
-Implemented so far: login, logout, inventory view/search, Add Product and Update Product. Routes use the `ADD_ROLES` / `UPDATE_ROLES` constants in `backend/app.py`; add `@roles_required(...)` to every new protected route, because hiding buttons is not authorization.
+Every protected route checks the role on the server with `@roles_required(...)`; hiding a button is not treated as authorization. A user without permission gets a 403 page.
 
-## 4. Tests
+## Technology
 
-Tests use a temporary SQLite database so they don't modify your MySQL development database:
+- Python 3.12, Flask 3
+- MySQL (TiDB Cloud in production) through `mysql-connector-python`; SQLite for automated tests
+- pytest, pytest-cov and flake8; GitHub Actions for CI
+- Render for hosting, `gunicorn` as the web server
+
+## Project layout
+
+```
+backend/
+  app.py                  Flask app: routes, validation, database access
+  seed_users.py           creates the demo accounts
+  check_db_connection.py  checks that .env can reach the database
+  templates/ static/      pages and styles
+  tests/                  pytest suite (unit and route tests)
+  system_tests/           end-to-end tests against a real MySQL database
+  certs/ca.pem            public CA certificate for TiDB Cloud
+database/schema.sql       table definitions
+docs/                     sprint notes, test reports, deployment, demo script
+G16-Documents/            SRS, SASD, Project Proposal, Test Plan and test reports
+.github/workflows/ci.yml  lint, tests and coverage on every push
+```
+
+## Run it locally
+
+1. Clone and enter the backend folder:
+   ```powershell
+   git clone https://github.com/Inventory-Management-System-G16/Electronics_Store_Inventory_Management_System.git
+   cd Electronics_Store_Inventory_Management_System\backend
+   ```
+2. Create a virtual environment and install packages:
+   ```powershell
+   py -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   pip install -r requirements.txt
+   Copy-Item .env.example .env
+   ```
+3. Edit `.env`: set `SECRET_KEY` to a long random text and fill in your MySQL details. Never commit `.env`.
+4. Create the tables by running `database/schema.sql` in MySQL Workbench or the MySQL command line.
+5. Create the demo accounts, then start the app:
+   ```powershell
+   python seed_users.py
+   python app.py
+   ```
+6. Open http://127.0.0.1:5000/login.
+
+To use a cloud database such as TiDB Cloud, also set `DB_PORT=4000` and `DB_SSL_CA=certs/ca.pem`. See [docs/deployment.md](docs/deployment.md).
+
+## Testing
+
+| Level | What it checks | Where | Command | Latest result |
+|---|---|---|---|---|
+| Unit and route tests | Validation functions and every route with its role rules, on a temporary SQLite database | `backend/tests/` | `pytest -q` | 157 passed, 1 expected failure |
+| System tests | The whole app on a real MySQL database, checking the database after each action, plus security and timing checks | `backend/system_tests/` | `python system_tests/run_system_tests.py` | 37 of 37 passed |
+| Lint | Code style | CI | `flake8 app.py seed_users.py tests --max-line-length=120 --extend-ignore=E203,W503,E501` | 0 issues |
+
+Run the unit and route tests with coverage from `backend/`:
 
 ```powershell
-cd backend
-pytest -v
-flake8 app.py seed_users.py tests --max-line-length=120 --extend-ignore=E203,W503,E501
+pytest -q --cov=app --cov-branch --cov-report=term-missing --cov-report=html:htmlcov
 ```
 
-Test coverage includes valid/invalid login, inactive accounts, session logout, access permissions, missing fields, negative and malformed numbers, duplicate product IDs, optional location and SQL-injection-shaped input. MySQL integration should also be tested manually against the team's actual schema before merging.
+**Coverage of `backend/app.py`** (312 statements, 118 branches), measured 17 November 2026:
 
-## 5. Git commits
+| Measurement | Statements | Branches |
+|---|---:|---:|
+| Unit and route tests (what CI runs) | 92.9% | 88.1% |
+| Plus system tests on MySQL | 95.2% | 90.7% |
 
-Stage specific files for each commit, after verifying `git diff`. Suggested logical commits:
+The one expected failure is known defect DEF-01: an unknown `?status=` value in the Availability Report URL shows an empty table instead of being ignored. It is low severity.
 
-```bash
-git add backend/app.py backend/templates/login.html backend/tests/test_auth.py
-git commit -m "feat(ESIMS-6): implement secure login"
+The system tests delete all rows in the `users` and `products` tables of the database they run against. Use a separate test database. Instructions are at the top of `backend/system_tests/run_system_tests.py`.
 
-git add backend/app.py backend/tests/test_rbac.py backend/templates/403.html
-git commit -m "feat(ESIMS-7): implement role-based access control"
+More detail: [docs/test-reports/README.md](docs/test-reports/README.md).
 
-git add backend/app.py backend/templates/login.html backend/templates/inventory.html backend/templates/add_product.html backend/tests/test_auth.py
-git commit -m "feat(ESIMS-8): implement secure logout"
+## CI
 
-git add backend/app.py backend/templates/add_product.html backend/tests/test_add_product.py backend/tests/test_validators.py database/schema.sql
- git commit -m "feat(ESIMS-11): implement add product validation"
+`.github/workflows/ci.yml` runs on every push and every pull request into `main`: flake8, then pytest with branch coverage. It saves the JUnit test results and the HTML coverage report as downloadable artifacts on the run's page in the Actions tab.
 
-git add .github/workflows/ci.yml .gitignore backend/requirements.txt README.md
- git commit -m "ci: add Sprint 1 automated tests"
+## Deployment
 
-git status
-git push -u origin feature/shreya-sprint1
-```
+The app runs on Render with a TiDB Cloud database. Steps and environment variables are in [docs/deployment.md](docs/deployment.md).
 
-These are examples, not commands to paste blindly: the same file may contain changes for multiple tasks. For clean commits, stage hunks with `git add -p` or finish one task at a time and run `git diff --cached` before each commit. Do not commit `.env`, `.venv/`, local DB files, or secrets.
+## Documents
 
-## 6. GitHub Actions
-
-`.github/workflows/ci.yml` runs lint and tests on pushes and pull requests. Push your branch, open the repository's Actions tab and verify the run is green. CI passing does not replace a manual test against MySQL or review of integration with the teammate's routes.
+| Document | File |
+|---|---|
+| Project Proposal | `G16-Documents/G16-Project-Proposal(final).pdf` |
+| Software Requirement Specification | `G16-Documents/G16-SRS(final).pdf` |
+| Software Test Plan | `G16-Documents/Software_Test_Plan_Group_16.pdf` |
+| SASD | `G16-Documents/ESIMS_SASD_Group16.pdf` |
+| Unit Test Report | `G16-Documents/Unit_Test_Report_Group16.pdf` |
+| System Test Report | `G16-Documents/System_Test_Report_Group16.pdf` |
+| Code and Branch Coverage Report | `G16-Documents/Code_and_Branch_Coverage_Report_Group16.pdf` |
+| Sprint notes | `docs/sprint1/`, `docs/sprint2/` |
+| Demo steps | `docs/demo-script.md` |
 
 ## Security notes
 
-- Passwords are verified using Werkzeug password hashes; they are never stored in plaintext.
-- Session cookies are HttpOnly and SameSite=Lax; set `COOKIE_SECURE=1` when deployed over HTTPS.
-- Keep `SECRET_KEY` private and rotate it if exposed.
-- SQL uses bound parameters; product ID is a primary key, preventing duplicate IDs even if concurrent requests race.
-- Use HTTPS in deployment, add CSRF protection for state-changing forms before production, and never expose stack traces or DB credentials to users.
+- Passwords are stored as Werkzeug hashes, never in plain text.
+- Session cookies are HttpOnly and SameSite=Lax. `COOKIE_SECURE=1` is set on the deployed site, which uses HTTPS.
+- All SQL uses bound parameters. The product ID is a primary key, so duplicate IDs are rejected even if two requests arrive together.
+- Input is validated on the server and output is escaped by the templates.
+- Keep `SECRET_KEY` and database passwords private. Rotate them if they are exposed.
+
+## Known limitations
+
+- No CSRF tokens on forms. This should be added before real production use.
+- No user-management screen. Accounts are created with `seed_users.py`.
+- No stock history, only the current quantity.
+- Browser compatibility and usability were checked by hand only.
+
+## Team
+
+Group 16: Shreyas Gowda K A, Shreya C Rao, R Laksheeth.

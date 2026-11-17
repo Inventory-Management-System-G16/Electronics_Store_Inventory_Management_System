@@ -1,0 +1,261 @@
+[
+ {
+  "tc": "TC-AUTH-01",
+  "req": "FR-AUTH-01",
+  "desc": "Login page is shown",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-AUTH-02",
+  "req": "FR-AUTH-01",
+  "desc": "Valid credentials log the user in",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-AUTH-02b",
+  "req": "FR-AUTH-01",
+  "desc": "Wrong password is rejected",
+  "result": "PASS",
+  "detail": "status 401"
+ },
+ {
+  "tc": "TC-AUTH-03-admin",
+  "req": "FR-AUTH-04",
+  "desc": "admin: Add Product page access",
+  "result": "PASS",
+  "detail": "expected 200"
+ },
+ {
+  "tc": "TC-AUTH-03-manager",
+  "req": "FR-AUTH-04",
+  "desc": "manager: Add Product page access",
+  "result": "PASS",
+  "detail": "expected 200"
+ },
+ {
+  "tc": "TC-AUTH-03-employee",
+  "req": "FR-AUTH-04",
+  "desc": "employee: Add Product page access",
+  "result": "PASS",
+  "detail": "expected 403"
+ },
+ {
+  "tc": "TC-AUTH-03-management",
+  "req": "FR-AUTH-04",
+  "desc": "management: Add Product page access",
+  "result": "PASS",
+  "detail": "expected 403"
+ },
+ {
+  "tc": "TC-AUTH-04",
+  "req": "FR-AUTH-04",
+  "desc": "Management cannot reach Add Product or Delete",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-AUTH-05",
+  "req": "FR-AUTH-06",
+  "desc": "Password field is masked",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-AUTH-06",
+  "req": "FR-AUTH-05",
+  "desc": "Logout ends the session",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-INV-01",
+  "req": "FR-INV-01",
+  "desc": "Add product persists to MySQL",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-INV-02",
+  "req": "FR-INV-02",
+  "desc": "Duplicate Product ID rejected (single row remains)",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-VAL-02",
+  "req": "FR-VAL-02",
+  "desc": "Duplicate message shown to user",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-INV-03",
+  "req": "FR-INV-04",
+  "desc": "Update quantity/details saved",
+  "result": "PASS",
+  "detail": "quantity=12"
+ },
+ {
+  "tc": "TC-INV-08",
+  "req": "FR-INV-08",
+  "desc": "Search returns only matching product",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-INV-05",
+  "req": "FR-INV-05",
+  "desc": "Delete asks for confirmation first, nothing deleted",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-INV-06",
+  "req": "FR-INV-05/06",
+  "desc": "Confirmed delete removes product (authorised role)",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-INV-06b",
+  "req": "FR-INV-06",
+  "desc": "Employee cannot delete",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-VAL-01",
+  "req": "FR-VAL-01",
+  "desc": "Missing mandatory field rejected",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-VAL-03",
+  "req": "FR-VAL-03",
+  "desc": "Negative price rejected",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-VAL-03b",
+  "req": "FR-VAL-03",
+  "desc": "Negative quantity rejected",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-VAL-04",
+  "req": "FR-VAL-04",
+  "desc": "Non-numeric quantity rejected",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-REP-01",
+  "req": "FR-REP-01",
+  "desc": "Quantity above reorder level = In Stock",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-REP-02",
+  "req": "FR-REP-02",
+  "desc": "Quantity at reorder level = Low Stock",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-REP-03",
+  "req": "FR-REP-03",
+  "desc": "Quantity 0 = Out of Stock",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-REP-04",
+  "req": "FR-REP-05",
+  "desc": "Availability report lists products",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-REP-05",
+  "req": "FR-REP-06",
+  "desc": "Report filter by status",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-REP-05b",
+  "req": "FR-REP-06",
+  "desc": "Report search by name",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-REP-06",
+  "req": "FR-REP-05",
+  "desc": "Management role can open the report",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-DASH-01",
+  "req": "FR-DASH-01..04",
+  "desc": "Dashboard totals equal database values",
+  "result": "PASS",
+  "detail": "page=[6, 41, 3, 1] db=[6, Decimal('41'), 3, 1]"
+ },
+ {
+  "tc": "TC-DASH-02",
+  "req": "FR-DASH-06",
+  "desc": "Dashboard reflects the latest data",
+  "result": "PASS",
+  "detail": "out-of-stock 1 -> 2"
+ },
+ {
+  "tc": "TC-DASH-03",
+  "req": "FR-DASH-05",
+  "desc": "Employee cannot open dashboard",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-SEC-01",
+  "req": "FR-VAL-05/NFR-07",
+  "desc": "SQL-injection text stored as data, table intact",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-SEC-02",
+  "req": "NFR-04",
+  "desc": "Script input is HTML-escaped",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-SEC-03",
+  "req": "NFR-05",
+  "desc": "Anonymous user redirected from protected pages",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-SEC-04",
+  "req": "NFR-07",
+  "desc": "Failed login shows no sensitive info (no SQL/stack trace)",
+  "result": "PASS",
+  "detail": ""
+ },
+ {
+  "tc": "TC-PERF-01",
+  "req": "NFR-01/02",
+  "desc": "Pages load fast with 200+ products (max < 2000 ms)",
+  "result": "PASS",
+  "detail": "/inventory: avg 19 ms, max 24 ms; /availability-report: avg 19 ms, max 25 ms; /dashboard: avg 4 ms, max 5 ms"
+ }
+]
