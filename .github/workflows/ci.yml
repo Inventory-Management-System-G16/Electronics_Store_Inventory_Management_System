@@ -28,11 +28,18 @@ jobs:
         env:
           DB_DRIVER: sqlite
           SECRET_KEY: ci-only-test-secret
-        run: pytest -q --junitxml=test-results.xml
+        run: pytest -q --cov=app --cov-branch --cov-report=term-missing --cov-report=html:htmlcov --junitxml=test-results.xml
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: junit-test-results
           path: backend/test-results.xml
+          if-no-files-found: ignore
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/htmlcov/
           if-no-files-found: ignore
