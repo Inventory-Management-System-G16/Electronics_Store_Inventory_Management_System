@@ -62,12 +62,25 @@ def get_db():
         else:
             import mysql.connector
 
+            # Cloud databases such as TiDB require an encrypted connection.
+            # Set DB_SSL_CA (path to the CA certificate) to turn it on.
+            ssl_options = {}
+            ssl_ca = os.environ.get("DB_SSL_CA")
+            if ssl_ca:
+                ssl_options = {
+                    "ssl_ca": str(BASE_DIR / ssl_ca),
+                    "ssl_verify_cert": True,
+                    "ssl_verify_identity": True,
+                }
+
             g.db = mysql.connector.connect(
                 host=os.environ.get("DB_HOST", "localhost"),
                 port=int(os.environ.get("DB_PORT", "3306")),
                 user=os.environ.get("DB_USER", "root"),
                 password=os.environ.get("DB_PASSWORD", ""),
                 database=os.environ.get("DB_NAME", "esims_db"),
+                connection_timeout=15,
+                **ssl_options,
             )
 
     return g.db
