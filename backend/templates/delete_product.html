@@ -1,247 +1,273 @@
-"""ESIMS-13: Delete Product (FR-INV-05 confirmation, FR-INV-06 authorization)."""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESIMS | Delete Product</title>
 
-import sqlite3
-import pytest
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
+    <style>
+        * { box-sizing: border-box; }
 
-@pytest.fixture()
-def product(db_path):
-    conn = sqlite3.connect(db_path)
-
-    conn.execute(
-        """
-        INSERT INTO products
-        VALUES ('P100', 'HDMI Cable', 'Cables', 299.5, 20, 5, 'A1')
-        """
-    )
-
-    conn.commit()
-    conn.close()
-
-
-def count(db_path):
-    conn = sqlite3.connect(db_path)
-
-    total = conn.execute(
-        "SELECT COUNT(*) FROM products"
-    ).fetchone()[0]
-
-    conn.close()
-    return total
-
-
-# ------------------------------------------------------------
-# AUTHORIZATION TESTS
-# ------------------------------------------------------------
-
-@pytest.mark.parametrize(
-    "username",
-    ["employee", "management"]
-)
-def test_unauthorized_roles_cannot_open_or_submit_delete(
-    client, login_as, product, db_path, username
-):
-    login_as(username)
-
-    assert client.get("/delete-product/P100").status_code == 403
-    assert client.post("/delete-product/P100").status_code == 403
-
-    assert count(db_path) == 1
-
-
-def test_anonymous_cannot_delete(client, product, db_path):
-    response = client.post("/delete-product/P100")
-
-    assert response.status_code == 302
-    assert "/login" in response.headers["Location"]
-
-    assert count(db_path) == 1
-
-
-@pytest.mark.parametrize(
-    "username",
-    ["admin", "manager"]
-)
-def test_authorized_roles_can_open_confirmation(
-    client, login_as, product, username
-):
-    login_as(username)
-
-    assert client.get("/delete-product/P100").status_code == 200
-
-
-# ------------------------------------------------------------
-# CONFIRMATION TESTS
-# ------------------------------------------------------------
-
-def test_confirmation_page_shows_product_and_deletes_nothing(
-    client, login_as, product, db_path
-):
-    login_as("manager")
-
-    html = client.get("/delete-product/P100").data
-
-    assert b"HDMI Cable" in html
-    assert b"Yes, delete product" in html
-
-    assert count(db_path) == 1
-
-
-def test_get_never_deletes(client, login_as, product, db_path):
-    login_as("admin")
-
-    client.get("/delete-product/P100")
-
-    assert count(db_path) == 1
-
-
-# ------------------------------------------------------------
-# DELETE BEHAVIOUR TESTS
-# ------------------------------------------------------------
-
-def test_confirmed_delete_removes_product_and_shows_message(
-    client, login_as, product, db_path
-):
-    login_as("manager")
-
-    response = client.post(
-        "/delete-product/P100",
-        follow_redirects=True
-    )
-
-    assert response.status_code == 200
-    assert b"Product P100 was deleted." in response.data
-
-    assert count(db_path) == 0
-    assert b"HDMI Cable" not in response.data
-
-
-def test_only_the_chosen_product_is_deleted(
-    client, login_as, product, db_path
-):
-    conn = sqlite3.connect(db_path)
-
-    conn.execute(
-        """
-        INSERT INTO products
-        VALUES ('P200', 'Mouse', 'Accessories', 10, 3, 1, NULL)
-        """
-    )
-
-    conn.commit()
-    conn.close()
-
-    login_as("admin")
-
-    client.post("/delete-product/P100")
-
-    conn = sqlite3.connect(db_path)
-
-    ids = [
-        row[0]
-        for row in conn.execute(
-            "SELECT product_id FROM products"
-        )
-    ]
-
-    conn.close()
-
-    assert ids == ["P200"]
-
-
-def test_unknown_product_is_404(client, login_as):
-    login_as("manager")
-
-    assert client.get("/delete-product/NOPE").status_code == 404
-    assert client.post("/delete-product/NOPE").status_code == 404
-
-
-def test_deleted_product_id_can_be_added_again(
-    client, login_as, product
-):
-    login_as("manager")
-
-    client.post("/delete-product/P100")
-
-    response = client.post(
-        "/add-product",
-        data={
-            "product_id": "P100",
-            "product_name": "New",
-            "category": "Cables",
-            "price": "1",
-            "quantity": "1",
-            "reorder_level": "1",
-            "location": ""
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f3f6fc;
+            color: #1e293b;
         }
-    )
 
-    assert response.status_code == 302
+        a { text-decoration: none; }
 
+        .layout { display: flex; min-height: 100vh; }
 
-# ------------------------------------------------------------
-# DELETE BUTTON VISIBILITY TESTS
-# ------------------------------------------------------------
+        .sidebar {
+            width: 255px;
+            background: #172554;
+            color: white;
+            padding: 28px 18px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
 
-@pytest.mark.parametrize(
-    "username,visible",
-    [
-        ("admin", True),
-        ("manager", True),
-        ("employee", False),
-        ("management", False)
-    ]
-)
-def test_delete_button_visibility(
-    client, login_as, product, username, visible
-):
-    login_as(username)
+        .brand {
+            font-size: 22px;
+            font-weight: 800;
+            padding: 0 12px 38px;
+        }
 
-    response = client.get("/inventory")
-    html = response.data
+        .brand span { color: #60a5fa; }
 
-    print("\n========== DELETE BUTTON DIAGNOSTIC ==========")
-    print("USER:", username)
-    print("STATUS:", response.status_code)
-    print("P100 FOUND:", b"P100" in html)
-    print("HDMI FOUND:", b"HDMI Cable" in html)
-    print("EMPTY MESSAGE:", b"No products found" in html)
-    print("DELETE LINK:", b"/delete-product/P100" in html)
-    print("==============================================\n")
+        .menu-title {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 0 12px;
+            margin-bottom: 15px;
+        }
 
-    assert (b"/delete-product/P100" in html) is visible
+        .menu a {
+            display: block;
+            padding: 14px;
+            margin-bottom: 8px;
+            color: #dbeafe;
+            border-radius: 9px;
+            font-size: 14px;
+        }
 
+        .menu a:hover, .menu a.active {
+            background: #2563eb;
+            color: white;
+        }
 
-# ------------------------------------------------------------
-# SAFE ERROR MESSAGE TEST
-# ------------------------------------------------------------
+        .sidebar-bottom { margin-top: auto; }
 
-def test_delete_failure_shows_safe_message(
-    client, login_as, product, monkeypatch
-):
-    import app as app_module
+        .user-box {
+            padding: 15px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            margin-top: 35px;
+            font-size: 13px;
+            color: #dbeafe;
+            overflow-wrap: anywhere;
+        }
 
-    real = app_module.execute
+        .user-box strong { color: white; }
 
-    def broken(sql, params=(), **kwargs):
+        .logout-button {
+            margin-top: 14px;
+            width: 100%;
+            padding: 12px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
 
-        if sql.strip().upper().startswith("DELETE"):
-            raise RuntimeError("secret database detail")
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 32px 38px;
+        }
 
-        return real(sql, params, **kwargs)
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 28px;
+        }
 
-    monkeypatch.setattr(
-        app_module,
-        "execute",
-        broken
-    )
+        .heading h1 {
+            margin: 0 0 7px;
+            font-size: 29px;
+            color: #172554;
+        }
 
-    login_as("manager")
+        .heading p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
 
-    response = client.post(
-        "/delete-product/P100",
-        follow_redirects=True
-    )
+        .system-status {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 9px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
 
-    assert b"Could not delete the product" in response.data
-    assert b"secret database detail" not in response.data
+        .confirm-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 28px 30px;
+            box-shadow: 0 6px 22px rgba(15, 23, 42, 0.06);
+            max-width: 640px;
+        }
+
+        .confirm-card p { margin: 0 0 18px; color: #334155; line-height: 1.5; }
+
+        .confirm-details {
+            margin: 0 0 22px;
+            padding: 16px 18px;
+            border: 1px solid #fecaca;
+            background: #fef2f2;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: 170px 1fr;
+            gap: 8px 14px;
+        }
+
+        .confirm-details dt { font-size: 13px; font-weight: 600; color: #7f1d1d; }
+        .confirm-details dd { margin: 0; color: #1e293b; }
+
+        .form-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 9px;
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 1.2;
+            cursor: pointer;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn-danger { background: #b91c1c; color: #fff; }
+        .btn-danger:hover { background: #991b1b; }
+        .btn-ghost { background: #e2e8f0; color: #334155; }
+        .btn-ghost:hover { background: #cbd5e1; }
+
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .main-content { padding: 24px 18px; }
+            .confirm-details { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">ESIMS <span>●</span></div>
+
+        <div class="menu-title">MAIN MENU</div>
+
+        <nav class="menu">
+            <a href="{{ url_for('inventory') }}" class="active">
+                📦 Inventory
+            </a>
+
+            {% if can_dashboard %}
+            <a href="{{ url_for('dashboard') }}">
+                📊 Dashboard
+            </a>
+            {% endif %}
+
+            {% if can_add %}
+            <a href="{{ url_for('add_product') }}">
+                ➕ Add Product
+            </a>
+            {% endif %}
+
+            {% if can_dashboard %}
+            <a href="{{ url_for('availability_report') }}">
+                📈 Availability Report
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="user-box">
+                Logged in as:<br>
+                <strong>{{ session.get('username', 'User') }}</strong><br>
+                Role: {{ session.get('role', 'User') }}
+            </div>
+
+            <form action="{{ url_for('logout') }}" method="POST">
+                <button type="submit" class="logout-button">
+                    Logout
+                </button>
+            </form>
+
+        </div>
+
+    </aside>
+
+    <main class="main-content">
+
+        <div class="topbar">
+            <div class="heading">
+                <h1>Delete Product</h1>
+                <p>Please confirm before removing this product.</p>
+            </div>
+        </div>
+
+        <section class="confirm-card">
+
+            <p>
+                Are you sure you want to permanently delete
+                <strong>{{ product.product_name }}</strong>?
+                This cannot be undone.
+            </p>
+
+            <dl class="confirm-details">
+                <dt>Product ID</dt><dd>{{ product.product_id }}</dd>
+                <dt>Name</dt><dd>{{ product.product_name }}</dd>
+                <dt>Category</dt><dd>{{ product.category }}</dd>
+                <dt>Quantity in stock</dt><dd>{{ product.quantity }}</dd>
+            </dl>
+
+            <form method="post"
+                  action="{{ url_for('delete_product', product_id=product.product_id) }}">
+                <div class="form-actions">
+                    <button class="btn btn-danger" type="submit">Yes, delete product</button>
+                    <a class="btn btn-ghost" href="{{ url_for('inventory') }}">Cancel</a>
+                </div>
+            </form>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>

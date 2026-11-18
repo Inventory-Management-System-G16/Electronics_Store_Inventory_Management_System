@@ -107,10 +107,17 @@
             padding-right: 75px;
         }
 
+        /* hide the browser's built-in reveal/clear icons; we use our own Show/Hide button */
+        .password-wrapper input::-ms-reveal,
+        .password-wrapper input::-ms-clear {
+            display: none;
+        }
+
         #pwToggle {
             position: absolute;
             right: 10px;
-            top: 10px;
+            top: 50%;
+            transform: translateY(-50%);
             padding: 5px 9px;
             background: transparent;
             border: none;
