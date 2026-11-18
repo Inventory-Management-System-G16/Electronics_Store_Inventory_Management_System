@@ -2,29 +2,276 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESIMS | Add Product</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='sr-ui.css') }}">
-</head>
-<body class="ui-page">
 
-{% set active = 'add' %}
-{% include "_topbar.html" %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #f3f6fc;
+            color: #1e293b;
+        }
+
+        a { text-decoration: none; }
+
+        .layout { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 255px;
+            background: #172554;
+            color: white;
+            padding: 28px 18px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 800;
+            padding: 0 12px 38px;
+        }
+
+        .brand span { color: #60a5fa; }
+
+        .menu-title {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            padding: 0 12px;
+            margin-bottom: 15px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 14px;
+            margin-bottom: 8px;
+            color: #dbeafe;
+            border-radius: 9px;
+            font-size: 14px;
+        }
+
+        .menu a:hover, .menu a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .sidebar-bottom { margin-top: auto; }
+
+        .user-box {
+            padding: 15px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            margin-top: 35px;
+            font-size: 13px;
+            color: #dbeafe;
+            overflow-wrap: anywhere;
+        }
+
+        .user-box strong { color: white; }
+
+        .logout-button {
+            margin-top: 14px;
+            width: 100%;
+            padding: 12px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 32px 38px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 28px;
+        }
+
+        .heading h1 {
+            margin: 0 0 7px;
+            font-size: 29px;
+            color: #172554;
+        }
+
+        .heading p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .system-status {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 9px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .form-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 28px 30px;
+            box-shadow: 0 6px 22px rgba(15, 23, 42, 0.06);
+            max-width: 860px;
+        }
+
+        .form-card h2 { margin: 0 0 20px; color: #172554; font-size: 20px; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px 22px;
+        }
+
+        .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+        .field.full { grid-column: 1 / -1; }
+
+        .field label { font-size: 13px; font-weight: 600; color: #334155; }
+        .req { color: #dc2626; }
+
+        .field input {
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #fff;
+            color: #1e293b;
+            width: 100%;
+        }
+
+        .field input:focus {
+            outline: 2px solid #93c5fd;
+            border-color: #2563eb;
+        }
+
+        .field.has-error input { border-color: #dc2626; background: #fef2f2; }
+        .hint { font-size: 12px; color: #64748b; }
+        .error-text { font-size: 12px; color: #b91c1c; font-weight: 600; }
+
+        .notice.error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            border-radius: 9px;
+            padding: 12px 14px;
+            margin: 0 0 18px;
+            font-size: 14px;
+        }
+
+        .form-actions { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 0;
+            line-height: 1.2;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 9px;
+            background: #2563eb;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn:hover { background: #1d4ed8; }
+        .btn-ghost { background: #e2e8f0; color: #334155; }
+        .btn-ghost:hover { background: #cbd5e1; }
+
+        @media (max-width: 900px) {
+            .layout { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .form-grid { grid-template-columns: 1fr; }
+            .main-content { padding: 24px 18px; }
+        }
+    </style>
+</head>
+
+<body>
 
 {% set fe = field_errors or {} %}
 {% set v = values or {} %}
 
-<main class="page">
+<div class="layout">
 
-    <div class="page-head">
-        <div>
-            <h1>Add product</h1>
-            <p>Create a new product in the inventory.</p>
+    <aside class="sidebar">
+
+        <div class="brand">ESIMS <span>●</span></div>
+
+        <div class="menu-title">MAIN MENU</div>
+
+        <nav class="menu">
+            <a href="{{ url_for('inventory') }}">
+                📦 Inventory
+            </a>
+
+            {% if can_dashboard %}
+            <a href="{{ url_for('dashboard') }}">
+                📊 Dashboard
+            </a>
+            {% endif %}
+
+            {% if can_add %}
+            <a href="{{ url_for('add_product') }}" class="active">
+                ➕ Add Product
+            </a>
+            {% endif %}
+
+            {% if can_dashboard %}
+            <a href="{{ url_for('availability_report') }}">
+                📈 Availability Report
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <div class="user-box">
+                Logged in as:<br>
+                <strong>{{ session.get('username', 'User') }}</strong><br>
+                Role: {{ session.get('role', 'User') }}
+            </div>
+
+            <form action="{{ url_for('logout') }}" method="POST">
+                <button type="submit" class="logout-button">
+                    Logout
+                </button>
+            </form>
+
         </div>
-    </div>
 
-    <section class="panel form-card">
+    </aside>
+
+    <main class="main-content">
+
+        <div class="topbar">
+            <div class="heading">
+                <h1>Add Product</h1>
+                <p>Create a new product in the inventory.</p>
+            </div>
+        </div>
+
+        <section class="form-card">
 
         {% if error %}
             <p class="notice error" role="alert">{{ error }}</p>
@@ -102,6 +349,10 @@
         </form>
 
     </section>
-</main>
+
+    </main>
+
+</div>
+
 </body>
 </html>
